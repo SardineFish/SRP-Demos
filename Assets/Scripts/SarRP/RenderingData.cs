@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SimpleRP
+namespace SarRP
 {
     public struct RenderingData
     {

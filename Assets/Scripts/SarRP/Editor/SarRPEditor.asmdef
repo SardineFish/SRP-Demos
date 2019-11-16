@@ -1,0 +1,16 @@
+{
+    "name": "SarRPEditor",
+    "references": [
+        "GUID:24f651f5664501f4ea5c674a10752d50"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

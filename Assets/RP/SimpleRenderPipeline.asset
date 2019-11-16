@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: SimpleRenderPipeline
   m_EditorClassIdentifier: 
   m_MaxShadowDistance: 1000
+  m_RenderPasses:
+  - {fileID: 11400000, guid: 2868121061105e944a425234418068bd, type: 2}
+  - {fileID: 11400000, guid: 97143b31534415a468ecaae2d358cd25, type: 2}
