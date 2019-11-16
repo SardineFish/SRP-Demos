@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using UnityEngine.Rendering;
 using UnityEngine;
 
-namespace SarRP
+namespace SimpleRP
 {
-    [CreateAssetMenu(fileName ="SarRenderPipeline", menuName = "SarRP/SarRenderPipeline")]
-    public class SardineRenderPipelineAsset : RenderPipelineAsset
+    [CreateAssetMenu(fileName ="SimpleRenderPipeline", menuName = "SimpleRP/SimpleRenderPipeline")]
+    public class SimpleRenderPipelineAsset : RenderPipelineAsset
     {
         [SerializeField]
         [Header("Max Shadow Distance")]
@@ -22,7 +22,7 @@ namespace SarRP
         }
         protected override RenderPipeline CreatePipeline()
         {
-            return new SardineRenderPipeline(this);
+            return new SimpleRenderPipeline(this);
         }
     }
 }

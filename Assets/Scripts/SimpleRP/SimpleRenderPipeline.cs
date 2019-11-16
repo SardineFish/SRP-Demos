@@ -3,65 +3,53 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SarRP
+namespace SimpleRP
 {
-    public class SardineRenderPipeline : RenderPipeline
+    public class SimpleRenderPipeline : RenderPipeline
     {
-        SardineRenderPipelineAsset settings { get; set; }
-        SardineRenderer Renderer { get; set; }
-        public SardineRenderPipeline(SardineRenderPipelineAsset asset)
+        SimpleRenderPipelineAsset settings { get; set; }
+        public SimpleRenderPipeline(SimpleRenderPipelineAsset asset)
         {
             settings = asset;
-            Renderer = new SardineRenderer();
 
-            Shader.globalRenderPipeline = "SardineRenderPipeline";
+            Shader.globalRenderPipeline = "SimpleRenderPipeline";
         }
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            BeginFrameRendering(context, cameras);
             foreach (var camera in cameras)
             {
-                BeginCameraRendering(context, camera);
 
                 RenderCamera(context, camera);
 
-                EndCameraRendering(context, camera);
             }
-            EndFrameRendering(context, cameras);
         }
         protected virtual void RenderCamera(ScriptableRenderContext context, Camera camera)
         {
             camera.TryGetCullingParameters(out var cullingParameters);
 
-            var renderer = this.Renderer;
-            var cmd = CommandBufferPool.Get(camera.name);
-
-            renderer.Reset();
-            renderer.SetupCullingParameters(ref cullingParameters, settings);
-            cmd.Clear();
-
-            if (camera.cameraType == CameraType.SceneView)
-                ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 
             var cullResults = context.Cull(ref cullingParameters);
-
             var renderingData = new RenderingData()
             {
                 camera = camera,
                 cullResults = cullResults
             };
+
             context.SetupCameraProperties(camera, false);
 
+            if (camera.cameraType == CameraType.SceneView)
+                ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+
             context.DrawSkybox(camera);
-            renderer.RenderOpaque(context, renderingData);
+
+            SimpleForwardRenderer.RenderOpaque(context, renderingData);
+
             if(camera.cameraType == CameraType.SceneView)
             {
                 context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
                 context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
             }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
             context.Submit();
         }
     }
