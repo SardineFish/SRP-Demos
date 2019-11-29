@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: TransparentPass
   m_EditorClassIdentifier: 
   UseDepthPeeling: 1
-  DepthPeelingPass: 4
+  DepthPeelingPass: 16

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Transparent
+  m_Name: Dragon
   m_Shader: {fileID: 4800000, guid: e1b9689982c24aa4987ec56d52b55255, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -68,7 +68,7 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _F0: 0
+    - _F0: 0.079
     - _FresnelExponent: 2.3
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -84,5 +84,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.2784314, g: 0.47692093, b: 0.5764706, a: 0.3137255}
+    - _Color: {r: 0.042262215, g: 0.1792453, b: 0.038047355, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

@@ -53,7 +53,9 @@ Shader "SarRP/Transparent" {
             //color = lerp(color, float4(reflection, 1), fresnel); 
             color.rgb = color.rgb * color.a * (1 - fresnel) + reflection.rgb * fresnel;
             color.a = lerp(color.a, 1, fresnel);
-            
+            /*color = dot(viewDir, normal) > 0
+                ? lerp(float4(1, 0, 0, 1), float4(reflection, 1), fresnel)
+                : lerp(float4(0, 0, 1, 1), float4(reflection, 1), fresnel);*/
             return color;
         }
 
@@ -109,9 +111,9 @@ Shader "SarRP/Transparent" {
         Pass {
             Tags {"LightMode" = "TransparentBack"}
 
-            ZWrite On
+            ZWrite Off
             ZTest On
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha
             Cull Front
 
             HLSLPROGRAM
@@ -127,9 +129,9 @@ Shader "SarRP/Transparent" {
             Name "TransparentFront"
             Tags {"LightMode" = "TransparentFront"}
 
-            ZWrite On
+            ZWrite Off
             ZTest On
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha
             Cull Back
 
             HLSLPROGRAM
@@ -145,7 +147,7 @@ Shader "SarRP/Transparent" {
             Tags {"LightMode" = "DepthPeelingFirstPass"}
 
             ZWrite On
-            ZTest On
+            ZTest LEqual
             Cull Off
 
             HLSLPROGRAM
@@ -161,7 +163,7 @@ Shader "SarRP/Transparent" {
             Tags {"LightMode" = "DepthPeelingPass"}
 
             ZWrite On
-            ZTest On
+            ZTest LEqual
             Cull Off
 
             HLSLPROGRAM
@@ -173,10 +175,10 @@ Shader "SarRP/Transparent" {
         }
         // #4
         Pass {
-            Tags {"LightMode" = "DepthPeelingPass"}
+            Tags {"LightMode" = "DepthPeelingFinalPass"}
 
             ZWrite On
-            ZTest On
+            ZTest LEqual
             Cull Off
             Blend One OneMinusSrcAlpha
 
