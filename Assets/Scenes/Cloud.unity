@@ -570,8 +570,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1065154388}
   - component: {fileID: 1065154387}
+  - component: {fileID: 1065154389}
   m_Layer: 0
-  m_Name: PerlinNoise3D
+  m_Name: Noise3D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -593,7 +594,7 @@ MonoBehaviour:
   Output: {fileID: 8400000, guid: 6b0db48b24e457243a3eebbe48b2b21f, type: 2}
   ComputeShader: {fileID: 7200000, guid: ac5affa286aa0f448a51f36ab98c0db6, type: 3}
   Scale: 64
-  FBMIteration: 1
+  FBMIteration: 6
 --- !u!4 &1065154388
 Transform:
   m_ObjectHideFlags: 0
@@ -608,6 +609,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1065154389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1065154386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25e5a283a6786a74cbcecc8cb9fba30b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UpdatePerFrame: 0
+  Output: {fileID: 8400000, guid: 212efa17852348c4f8100a305e9994c4, type: 2}
+  ComputeShader: {fileID: 7200000, guid: ab16bc43f99d5e34f8fbc7deaf8fd2f7, type: 3}
+  Scale: 64
+  FBMIteration: 1
 --- !u!1001 &1596592270
 PrefabInstance:
   m_ObjectHideFlags: 0

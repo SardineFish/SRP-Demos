@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace SarRP.Noise
 {
-    public class PerlinNoise3D : MonoBehaviour
+    public class Noise3D : MonoBehaviour
     {
         public bool UpdatePerFrame = false;
         public RenderTexture Output;

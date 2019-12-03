@@ -1,0 +1,97 @@
+﻿#pragma kernel GenNoise
+
+RWTexture3D<float> OutputTexture;
+float3 OutputSize;
+float Scale;
+int Iteration;
+float Seed;
+StructuredBuffer<int> perm;
+
+#define PHI (1.61803398874989484820459 * 00000.1)
+#define PI (3.14159265358979323846264 * 00000.1)
+#define SQ2 (1.41421356237309504880169 * 10000.0)
+#define E (2.71828182846)
+#define BIAS_X (1.31)
+#define BIAS_Y (1.17)
+#define BIAS_Z (1.57)
+
+// https://www.shadertoy.com/view/wtsSW4
+inline float gold_noise3(float3 pos, float seed)
+{
+    return frac(tan(distance(pos * (PHI + seed), float3(PHI, PI, E))) * SQ2) * 2 - 1;
+}
+
+inline float fade(float t)
+{
+    return pow(t, 3) * (t * (t * 6 - 15) + 10);
+}
+
+inline float smoothLerp(float t, float a, float b)
+{
+    return a + t * (b - a);
+}
+
+inline float3 gridAt(float3 pos)
+{
+    return saturate(float3(
+        abs(gold_noise3(pos, Seed * BIAS_X)) + 0.00001,
+        abs(gold_noise3(pos, Seed + BIAS_Y)) + 0.00001,
+        abs(gold_noise3(pos, Seed / BIAS_Z)) + 0.00001
+    ));
+}
+
+inline float grad(float3 v, float3 offset)
+{
+    return length(v) <= 0 ? 0 : dot(normalize(v), offset);
+}
+
+inline float3 mod(float3 n, float3 m)
+{
+    return (n + m) % m;
+}
+
+inline float noise(float3 pos, float3 repeatSize)
+{
+    pos = pos % repeatSize;
+    uint3 g = floor(pos);
+    pos -= g;
+
+    float minDist = 1024;
+    for(int i = -1; i <= 1; i++)
+    {
+        for(int j = -1; j <= 1; j++)
+        {
+            for(int k = -1; k <= 1 ; k++)
+            {
+                float3 offset = gridAt(mod(g + float3(i, j, k), repeatSize));
+                offset += float3(i, j, k);
+                minDist = min(minDist, distance(pos, offset));
+            }
+        }
+    }
+
+    return minDist;
+    //return perm[AB+1] / 255.0f;
+
+                                       
+}
+
+inline float fbm(float3 pos, int iteration, float3 repeatSize)
+{
+    float value = 0;
+    float amplitude = .5f;
+    for(int i = 0; i < iteration; i++)
+    {
+        value += amplitude * noise(pos, repeatSize);
+        pos *= 2;
+        repeatSize *= 2;
+        amplitude *= .5;
+    }
+    return value;
+}
+
+[numthreads(8,8,8)]
+void GenNoise (uint3 id : SV_DispatchThreadID)
+{
+    OutputTexture[id.xyz] = fbm(id.xyz / Scale, Iteration, OutputSize / Scale);
+}

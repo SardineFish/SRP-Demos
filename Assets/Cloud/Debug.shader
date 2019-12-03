@@ -3,10 +3,14 @@ Shader "Cloud/Debug" {
         _NoiseTex ("Noise Texture", 3D) = "white" {}
         _ZPos ("Z Pos", Range(0, 1)) = 0
         _Scale ("Scale", Float) = 1
+        _ValueScale("Value Scale", Float) = .5
+        _ValueOffset("Value Offset", Float) = .5
     }
     SubShader {
+        Tags {"Preview"="Plane"}
         // #0
         Pass {
+            Tags {"LightMode" = "ForwardLit"}
             ZWrite Off
             ZTest Off
             Cull Off
@@ -36,12 +40,14 @@ Shader "Cloud/Debug" {
             SamplerState noise_linear_repeat_sampler;
             float _ZPos;
             float _Scale;
+            float _ValueScale;
+            float _ValueOffset;
 
             float4 frag(v2f_screen i) : SV_TARGET
             {
                 float3 pos = float3(i.uv.xy, _ZPos);
                 float noise = _NoiseTex.Sample(noise_linear_repeat_sampler, pos * _Scale).r;// tex3D(_NoiseTex, pos * _Scale).r;
-                noise = noise * .5 + .5;
+                noise = noise * _ValueScale + _ValueOffset;
                 return noise;
             }
 

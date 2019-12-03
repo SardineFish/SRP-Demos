@@ -48,7 +48,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NoiseTex:
-        m_Texture: {fileID: 8400000, guid: 6b0db48b24e457243a3eebbe48b2b21f, type: 2}
+        m_Texture: {fileID: 8400000, guid: 212efa17852348c4f8100a305e9994c4, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -76,7 +76,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _ZPos: 0.223
+    - _ValueOffset: 0.5
+    - _ValueScale: -1
+    - _ZPos: 1
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

@@ -12,6 +12,8 @@ Shader "Cloud/Raymarching" {
         _DensityScale("Density Scale", Range(0, 1)) = .5
         _CloudBottom("Min Cloud Altitude", Float) = 20
         _CloudTop("Max Cloud Altitude", Float) = 30
+        _FBMOctave("FBM Octave", Int) = 4
+        _BeerLawScale("Beer's Law Scale", Float) = 1
     }
 
     HLSLINCLUDE
@@ -42,6 +44,8 @@ Shader "Cloud/Raymarching" {
     float _CloudBottom;
     float _CloudTop;
     float _Samples;
+    int _FBMOctave;
+    float _BeerLawScale;
 
     v2f vert(appdata_full i)
     {
@@ -58,7 +62,23 @@ Shader "Cloud/Raymarching" {
 
     inline float sampleNoise(float3 uv)
     {
-        return _NoiseTex.Sample(noise_linear_repeat_sampler, uv).r * .5 + .5;
+        return _NoiseTex.Sample(noise_linear_repeat_sampler, uv).r;
+    }
+
+    inline float fbm(float3 pos)
+    {
+        float value = 0;
+        float amplitude = .5f;
+        if(_FBMOctave < 2)
+            return sampleNoise(pos) * .5 + .5;
+        [loop]
+        for(int i = 0; i < _FBMOctave; i++)
+        {
+            value += amplitude * sampleNoise(pos);
+            pos *= 2;
+            amplitude *= .5;
+        }
+        return value * .5 + .5;
     }
 
     inline float cloudDensity(float noise)
@@ -79,9 +99,10 @@ Shader "Cloud/Raymarching" {
 
     #define MAX_ITERATION 128
 
-    inline float raymarchingCloud(float3 ray)
+    inline float raymarchingCloud(float3 ray, out float3 light)
     {
-        float density = 0;
+        light = 0;
+        float alpha = 0;
 
         float near = raymarchingMinDistance(ray);
         float far = raymarchingMaxDistance(ray);
@@ -97,20 +118,26 @@ Shader "Cloud/Raymarching" {
 
             float3 pos = _WorldCameraPos + dist * ray;
             float3 uv = float3(pos.x / _Scale, pos.y / _Thickness, pos.z / _Scale);
-            density += cloudDensity(sampleNoise(uv));
 
-            if(density >= 1)
-                break;
+            float density = cloudDensity(fbm(uv));
+
+            float d = dist - near;
+            light += exp(-d * _BeerLawScale * density) * (1.0f / _Samples) * _Color.rgb * (1 - density);
+            alpha += density;
+
+            /*if(alpha >= 1)
+                break;*/
 
         }
-        return saturate(density);
+        return saturate(alpha);
     }
 
     float4 cloudTest(v2f i) : SV_TARGET
     {
         float3 ray = normalize(i.ray);
-        float density = raymarchingCloud(ray);
-        return float4(_Color.rgb, _Color.a * density);
+        float3 color;
+        float density = raymarchingCloud(ray, color);
+        return float4(color, _Color.a * density);
 
         return 0;
     }
