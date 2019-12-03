@@ -9,7 +9,7 @@ using SarRP.Renderer;
 
 namespace SarRP
 {
-    [CreateAssetMenu(fileName ="SimpleRenderPipeline", menuName = "SimpleRP/SimpleRenderPipeline")]
+    [CreateAssetMenu(fileName ="SarRenderPipeline", menuName = "SarRP/SarRenderPipeline")]
     public class SardineRenderPipelineAsset : RenderPipelineAsset
     {
         [SerializeField]
