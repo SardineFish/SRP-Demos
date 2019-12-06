@@ -30,6 +30,8 @@ namespace SarRP.Renderer
         }
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (renderingData.camera.cameraType == CameraType.Preview)
+                return;
             if (!asset.material)
                 return;
             var cmd = CommandBufferPool.Get("Ray-marching");

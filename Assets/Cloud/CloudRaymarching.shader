@@ -1,6 +1,8 @@
 Shader "Cloud/Raymarching" {
     Properties {
         _NoiseTex("Noise Texture", 3D) = "white" {}
+        _WorleyNoise("Worley Noise", 3D) = "white" {}
+        _HeightGradient("Height Gradient", 2D) = "white" {}
         _Color("Color", Color) = (1, 1, 1, 1)
         _Scale("Scale", Float) = 1
         _Thickness("Thickness", Float) = 1
@@ -10,10 +12,13 @@ Shader "Cloud/Raymarching" {
         _Samples("Sample Count", Int) = 64
         _CloudThreshold("Cloud Threshold", Range(0, 1)) = .5
         _DensityScale("Density Scale", Range(0, 1)) = .5
-        _CloudBottom("Min Cloud Altitude", Float) = 20
-        _CloudTop("Max Cloud Altitude", Float) = 30
+        _GroundRadius("Ground Radius", Float) = 200
+        _CloudBottom("Min Cloud Altitude", Float) = 80
+        _CloudTop("Max Cloud Altitude", Float) = 90
         _FBMOctave("FBM Octave", Int) = 4
         _BeerLawScale("Beer's Law Scale", Float) = 1
+        _CloudType("Cloud Type", Range(0, 1)) = 0
+
     }
 
     HLSLINCLUDE
@@ -28,8 +33,12 @@ Shader "Cloud/Raymarching" {
         float3 worldPos : TEXCOORD2;
     };
 
+    #define PI (3.14159265358979323846264338327950288419716939937510)
+
     Texture3D _NoiseTex;
+    Texture3D _WorleyNoise;
     SamplerState noise_linear_repeat_sampler;
+    sampler2D _HeightGradient;
     float4 _Color;
     float _Scale;
     float _Thickness;
@@ -43,9 +52,11 @@ Shader "Cloud/Raymarching" {
     float _Far;
     float _CloudBottom;
     float _CloudTop;
+    float _GroundRadius;
     float _Samples;
     int _FBMOctave;
     float _BeerLawScale;
+    float _CloudType;
 
     v2f vert(appdata_full i)
     {
@@ -62,6 +73,13 @@ Shader "Cloud/Raymarching" {
 
     inline float sampleNoise(float3 uv)
     {
+        float4 noise = _NoiseTex.Sample(noise_linear_repeat_sampler, uv).rgba;
+        float n = noise.r * .5 + noise.g * .25 + noise.b * .125 + noise.a * .0625;
+        float4 heightGradient = tex2D(_HeightGradient, float2(.5, uv.y));
+        if(_CloudType < .5)
+            n *= lerp(heightGradient.r, heightGradient.g, _CloudType / .5);
+        else
+            n *= lerp(heightGradient.g, heightGradient.b, (_CloudType - .5) / .5);
         return _NoiseTex.Sample(noise_linear_repeat_sampler, uv).r;
     }
 
@@ -96,16 +114,58 @@ Shader "Cloud/Raymarching" {
         float t = (_CloudTop - _WorldCameraPos.y) / ray.y;
         return t;
     }
+    inline float pow2(float3 v)
+    {
+        return pow(length(v), 2);
+    }
+    inline float rayHitSphere(float3 o, float3 p, float3 ray, float3 r)
+    {
+        /*
+        1/Norm[dir]^2 * (
+            Dot[dir, o] 
+            - Dot[dir, p] 
+            + 0.5*Sqrt[
+                4*Dot[dir, o - p]^2 
+                - 4*Norm[dir]^2*(
+                    Norm[o - p]^2 
+                    - r^2
+                )
+            ]
+        )
+        */
+        return 1/pow2(ray) * (
+            dot(ray, o) 
+            - dot(ray, p)
+            + .5*sqrt(
+                4*pow(dot(ray, o-p), 2)
+                - 4*pow2(ray)*(
+                    pow2(o - p) - 
+                    pow(r, 2)
+                )
+            )
+        );
+
+    }
+    inline float3 toSphereCoord(float3 p)
+    {
+        float2 u = normalize(float2(p.y, p.z));
+        float2 v = normalize(p);
+        return float3(atan2(u.y, u.x), asin(v.x), length(p));
+    }
 
     #define MAX_ITERATION 128
 
     inline float raymarchingCloud(float3 ray, out float3 light)
     {
+        if(ray.y < 0)
+            return 0;
         light = 0;
         float alpha = 0;
+        float3 earthCenter = float3(0, -_GroundRadius, 0);
 
-        float near = raymarchingMinDistance(ray);
-        float far = raymarchingMaxDistance(ray);
+        float near = rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudBottom);
+        float far = rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudTop);
+
         if(far <= 0)
             return 0;
         near = near < 0 ? 0 : near;
@@ -117,9 +177,16 @@ Shader "Cloud/Raymarching" {
             dist = lerp(near, far, i / _Samples);
 
             float3 pos = _WorldCameraPos + dist * ray;
-            float3 uv = float3(pos.x / _Scale, pos.y / _Thickness, pos.z / _Scale);
+            //float3 uv = float3(pos.x / _Scale, pos.y / (_CloudTop - _CloudBottom), pos.z / _Scale);
+            float3 uv = toSphereCoord(pos - earthCenter);
+            uv.xy /= _Scale;
+            uv.z = smoothstep(_GroundRadius + _CloudBottom, _GroundRadius + _CloudTop, uv.z);
+            //float3 coord = toSphereCoord(pos - earthCenter);
 
-            float density = cloudDensity(fbm(uv));
+            // light = frac(uv);
+            // return 1;
+
+            float density = cloudDensity(fbm(uv)); // TODO
 
             float d = dist - near;
             light += exp(-d * _BeerLawScale * density) * (1.0f / _Samples) * _Color.rgb * (1 - density);

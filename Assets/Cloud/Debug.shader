@@ -7,7 +7,7 @@ Shader "Cloud/Debug" {
         _ValueOffset("Value Offset", Float) = .5
     }
     SubShader {
-        Tags {"Preview"="Plane"}
+        Tags {"PreviewType"="Plane"}
         // #0
         Pass {
             Tags {"LightMode" = "ForwardLit"}
