@@ -76,9 +76,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _ValueOffset: 0.17
-    - _ValueScale: 0.5
-    - _ZPos: 0
+    - _ValueOffset: -0.27
+    - _ValueScale: 1
+    - _ZPos: 1
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

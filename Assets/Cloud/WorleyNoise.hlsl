@@ -30,8 +30,6 @@ inline float worleyNoiseFBM(float3 pos, int iteration, float3 repeatSize, float 
 {
     float value = 0;
     float amplitude = .5f;
-    if(iteration < 2)
-        amplitude = 1;
     for(int i = 0; i < iteration; i++)
     {
         value += amplitude * worleyNoise(pos, repeatSize, seed);
@@ -39,5 +37,7 @@ inline float worleyNoiseFBM(float3 pos, int iteration, float3 repeatSize, float 
         repeatSize *= 2;
         amplitude *= .5;
     }
+    
+    value /= 1 - pow(.5, iteration);
     return 1 - 2 * value;
 }

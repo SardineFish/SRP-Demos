@@ -1,0 +1,17 @@
+#pragma kernel GenNoise
+
+#include "PerlinNoise.hlsl"
+
+RWTexture2D<float4> OutputTexture;
+float2 OutputSize;
+float Scale;
+int Iteration;
+float Seed;
+
+[numthreads(8,8,1)]
+void GenNoise (uint3 id : SV_DispatchThreadID)
+{
+    float noise = perlinNoiseFBM(id.xy / Scale, Iteration, OutputSize / Scale, Seed) * .5 + .5;
+    noise = smoothstep(.55,.6, noise);
+    OutputTexture[id.xy] = noise;
+}

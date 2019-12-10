@@ -10,9 +10,13 @@
 #define BIAS_Z (1.57)
 
 // https://www.shadertoy.com/view/wtsSW4
-inline float gold_noise3(float3 pos, float seed)
+inline float gold_noise(float3 pos, float seed)
 {
     return frac(tan(distance(pos * (PHI + seed), float3(PHI, PI, E))) * SQ2) * 2 - 1;
+}
+inline float gold_noise(float2 pos, float seed)
+{
+    return frac(tan(distance(pos * (PHI + seed), float2(PHI, PI))) * SQ2) * 2 - 1;
 }
 
 inline float fade(float t)
@@ -28,15 +32,28 @@ inline float smoothLerp(float t, float a, float b)
 inline float3 gridAt(float3 pos, float seed)
 {
     return float3(
-        gold_noise3(pos, seed * BIAS_X) + 0.00001,
-        gold_noise3(pos, seed + BIAS_Y) + 0.00001,
-        gold_noise3(pos, seed / BIAS_Z) + 0.00001
+        gold_noise(pos, seed * BIAS_X) + 0.00001,
+        gold_noise(pos, seed + BIAS_Y) + 0.00001,
+        gold_noise(pos, seed / BIAS_Z) + 0.00001
     );
 }
+inline float2 gridAt(float2 pos, float seed)
+{
+    return float2(
+        gold_noise(pos, seed * BIAS_X) + 0.00001,
+        gold_noise(pos, seed + BIAS_Y) + 0.00001
+    );
+}
+
 inline float grad(float3 v, float3 offset)
 {
     return length(v) <= 0 ? 0 : dot(normalize(v), offset);
 }
+inline float grad(float2 v, float2 offset)
+{
+    return length(v) <= 0 ? 0 : dot(normalize(v), offset);
+}
+
 inline float3 mod(float3 n, float3 m)
 {
     return (n + m) % m;

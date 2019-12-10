@@ -41,9 +41,19 @@ namespace SarRP.Renderer
             cmd.SetGlobalVector("_CameraClipPlane", new Vector3(renderingData.camera.nearClipPlane, renderingData.camera.farClipPlane, renderingData.camera.farClipPlane - renderingData.camera.nearClipPlane));
             cmd.SetGlobalMatrix("_ViewProjectionInverseMatrix", Utility.ProjectionToWorldMatrix(renderingData.camera));
             //cmd.Blit(BuiltinRenderTextureType.None, BuiltinRenderTextureType.CameraTarget, asset.material);
-            cmd.DrawMesh(screenMesh, Utility.ProjectionToWorldMatrix(renderingData.camera), asset.material);
+
+            var cubes = Resources.FindObjectsOfTypeAll<Test.VolumetricTestCube>();
+            foreach(var cube in cubes)
+            {
+                cmd.SetGlobalVector("_CubeSize", cube.transform.localScale);
+                cmd.SetGlobalVector("_CubePos", cube.transform.position);
+                cmd.DrawRenderer(cube.GetComponent<MeshRenderer>(), asset.material, 0, 1);
+            }
+
+            //cmd.DrawMesh(screenMesh, Utility.ProjectionToWorldMatrix(renderingData.camera), asset.material);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+
             CommandBufferPool.Release(cmd);
         }
     }
