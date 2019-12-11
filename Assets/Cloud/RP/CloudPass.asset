@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 46bbad9cb3d09b14da59db79b9d86a05, type: 3}
-  m_Name: RaymarchingPass
+  m_Name: CloudPass
   m_EditorClassIdentifier: 
+  DrawFullScreen: 1
   near: 0
   far: 0
   step: 0
-  material: {fileID: 2100000, guid: b013ef537b03d754d867f3fd816afa86, type: 2}
+  material: {fileID: 2100000, guid: 9bd6d064c008b814a919a37b602d86a2, type: 2}

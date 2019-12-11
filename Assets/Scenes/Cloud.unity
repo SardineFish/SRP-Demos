@@ -200,7 +200,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 246434643}
   m_LocalRotation: {x: 0.11800422, y: 0.6592647, z: -0.123629935, w: 0.73223}
-  m_LocalPosition: {x: -12.26, y: 5.28, z: -1.36}
+  m_LocalPosition: {x: -12.26, y: 5.86, z: -2.57}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -305,13 +305,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 460103104}
-  m_LocalRotation: {x: 0.9416226, y: 0.057692844, z: -0.25230712, w: 0.21531264}
+  m_LocalRotation: {x: -0.86816865, y: -0.113458686, z: 0.23262517, w: -0.42343348}
   m_LocalPosition: {x: 0.66, y: 3, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 154.23999, y: 30, z: -0.000015258789}
+  m_LocalEulerAnglesHint: {x: 488, y: 30, z: -0.000015258789}
 --- !u!1 &849799528
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,9 +573,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1065154388}
-  - component: {fileID: 1065154387}
-  - component: {fileID: 1065154389}
   - component: {fileID: 1065154390}
+  - component: {fileID: 1065154389}
   - component: {fileID: 1065154391}
   - component: {fileID: 1065154392}
   m_Layer: 0
@@ -585,23 +584,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1065154387
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1065154386}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25e5a283a6786a74cbcecc8cb9fba30b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UpdatePerFrame: 0
-  Output: {fileID: 8400000, guid: 6b0db48b24e457243a3eebbe48b2b21f, type: 2}
-  ComputeShader: {fileID: 7200000, guid: ac5affa286aa0f448a51f36ab98c0db6, type: 3}
-  Scale: 64
-  FBMIteration: 4
 --- !u!4 &1065154388
 Transform:
   m_ObjectHideFlags: 0
@@ -629,8 +611,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UpdatePerFrame: 0
-  Output: {fileID: 8400000, guid: 212efa17852348c4f8100a305e9994c4, type: 2}
-  ComputeShader: {fileID: 7200000, guid: ab16bc43f99d5e34f8fbc7deaf8fd2f7, type: 3}
+  Output: {fileID: 8400000, guid: 41720525bf4df7040b8e5525c0e0afa9, type: 2}
+  ComputeShader: {fileID: 7200000, guid: e3efd2f6aea196c409de312daba48062, type: 3}
   Scale: 64
   FBMIteration: 3
 --- !u!114 &1065154390
@@ -704,7 +686,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &1146537982
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -942,7 +924,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1639041504}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.01, y: 3.37, z: -0.9}
+  m_LocalPosition: {x: -4.01, y: 3.27, z: -2.28}
   m_LocalScale: {x: 6.596853, y: 1.9311256, z: 7.6748405}
   m_Children: []
   m_Father: {fileID: 0}

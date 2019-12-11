@@ -1,7 +1,7 @@
 Shader "Cloud/Raymarching" {
     Properties {
         _NoiseTex("Noise Texture", 3D) = "white" {}
-        _WorleyNoise("Worley Noise", 3D) = "white" {}
+        _DetailNoiseTex("Detail Noise Texture", 3D) = "white" {}
         _HeightGradient("Height Gradient", 2D) = "white" {}
         _CoverageTex("Coverage Texture", 2D) = "white" {}
         _CoverageScale("Coverage Scale", Float) = 1
@@ -10,13 +10,18 @@ Shader "Cloud/Raymarching" {
         _DarkColor("Color", Color) = (.5, .5, .5, 1)
         _Scale("Scale", Float) = 1
         _HeightScale("Height Scale", Float) = 1
-        _Thickness("Thickness", Float) = 1
+        _HeightOffset("Height Offset", Range(0, 1)) = 0
+        _NoiseAmplitude("Cloud Noise Amplitude", Vector) = (.5, .25, .125, .0625)
+        _DetailAmplitude("Detail Noise Amplitude", Vector) = (.5, .25, .125, .0625)
+        _DetailScale("Detail Scale", Float) = 1
+        _DetailStrength("Detail Strength", Float) = 1
         _Near("Near", Float) = 0
         _Far("Far", Float) = 20
         _Step("Step", Float) = 0.5
         _Samples("Sample Count", Int) = 64
         _CloudThreshold("Cloud Threshold", Range(0, 1)) = .5
-        _DensityScale("Density Scale", Range(0, 1)) = .5
+        _DensityScale("Density Scale", Range(0, 2)) = .5
+        _LightScale("Light Scale", Float) = 64
         _GroundRadius("Ground Radius", Float) = 200
         _CloudBottom("Min Cloud Altitude", Float) = 80
         _CloudTop("Max Cloud Altitude", Float) = 90
@@ -24,11 +29,12 @@ Shader "Cloud/Raymarching" {
         _CloudType("Cloud Type", Range(0, 1)) = 0
         _CloudShapeExponent("Cloud Shape Exponent", Float) = 1
         _ScatterFactor("Scatter Factor", Range(-1, 1)) = 0
-        _ScatterDistance("Scatter Distance", Float) = 5
+        _ScatterDistanceMultiply("Scatter Distance Multiply", Float) = .5
         _ScatterExtend("Scatter Extend", Float) = 1
         _OcclusionSampleDistance("Occlusion Distance", Float) = 1
         _Absorption("Cloud Absorption", Float) = 1
         _AbsorptionToLight("Absorption To Light", Float) = 1
+        _PowderEffectScale("Powder Effect", Float) = 1
     }
 
     HLSLINCLUDE
@@ -54,7 +60,8 @@ Shader "Cloud/Raymarching" {
     float _Far;
 
     Texture3D _NoiseTex;
-    Texture3D _WorleyNoise;
+    Texture3D _DetailNoiseTex;
+    SamplerState detail_linear_repeat_sampler;
     SamplerState noise_linear_repeat_sampler;
     sampler2D _HeightGradient;
     sampler2D _CoverageTex;
@@ -65,8 +72,13 @@ Shader "Cloud/Raymarching" {
     float4 _DarkColor;
     float _Scale;
     float _HeightScale;
+    float _DetailScale;
+    float4 _NoiseAmplitude;
     float _CloudThreshold;
     float _DensityScale;
+    float4 _DetailAmplitude;
+    float _DetailStrength;
+    float _LightScale;
     float _CloudBottom;
     float _CloudTop;
     float _GroundRadius;
@@ -76,42 +88,51 @@ Shader "Cloud/Raymarching" {
     float _CloudType;
     float _CloudShapeExponent;
     float _ScatterFactor;
+    float _ScatterDistanceMultiply;
     float _ScatterDistance;
     float _ScatterExtend;
     float _OcclusionSampleDistance;
     float _Absorption;
     float _AbsorptionToLight;
+    float _PowderEffectScale;
 
     float4 _MainLightDirection;
     float4 _MainLightColor;
 
-    v2f vert(appdata_full i)
+    v2f cloudCubeVert(appdata_full i)
     {
         v2f o;
         o.pos = UnityObjectToClipPos(i.vertex);
         o.uv = i.texcoord;
-        float4 p = float4(i.vertex.x, i.vertex.y, -1, 1);
-        p = p * _CameraClipPlane.x;
-        o.worldPos = mul(_ViewProjectionInverseMatrix, p);
-        o.ray = o.worldPos - _WorldCameraPos;
-        o.ray = normalize(o.ray) * (length(o.ray) / _CameraClipPlane.x);
         o.worldPos = mul(unity_ObjectToWorld, i.vertex);
+        o.ray = o.worldPos - _WorldCameraPos;
+        return o;
+    }
+
+    v2f cloudSkyVert(appdata_full i)
+    {
+        v2f o;
+        o.pos = float4(i.vertex.x, i.vertex.y * _ProjectionParams.x, 1, 1);
+        o.uv = i.texcoord;
+        float4 p = float4(i.vertex.x, i.vertex.y, 1, 1);
+        p = p * _ProjectionParams.z;
+        o.worldPos = mul(_ViewProjectionInverseMatrix, float4(p.xyzw));
+        o.ray = normalize(o.worldPos - _WorldCameraPos);
         return o;
     }
 
     inline float sampleNoise(float3 uv)
     {
+        float3 detailUV = uv.xyz / _DetailScale;
         float2 coverageUV = uv.xy / _CoverageScale;
         float coverage = tex2D(_CoverageTex, coverageUV).r;
         float4 noise = _NoiseTex.Sample(noise_linear_repeat_sampler, uv).rgba;
-        float n = noise.r * .5 + noise.g * .25 + noise.b * .125 + noise.a * .0625;
+        float4 detailNoise = _DetailNoiseTex.Sample(detail_linear_repeat_sampler, detailUV).rgba;
+        float n = dot(noise, _NoiseAmplitude);
+        float dn = dot(detailNoise, _DetailAmplitude);
+        dn = lerp(-dn, dn, saturate(uv.z * _HeightScale * 4));
+        n -= dn * _DetailStrength;
         return n * coverage;
-        // float4 heightGradient = tex2D(_HeightGradient, float2(.5, uv.z));
-        // if(_CloudType < .5)
-        //     n *= lerp(heightGradient.r, heightGradient.g, _CloudType / .5);
-        // else
-        //     n *= lerp(heightGradient.g, heightGradient.b, (_CloudType - .5) / .5);
-        // return n;
     }
 
     inline float fbm(float3 pos)
@@ -130,7 +151,7 @@ Shader "Cloud/Raymarching" {
         return value * .5 + .5;
     }
 
-    inline float cloudShpe(float height)
+    inline float cloudShape(float height)
     {
         float4 heightGradient = tex2D(_HeightGradient, float2(.5, height));
         return pow(
@@ -138,11 +159,7 @@ Shader "Cloud/Raymarching" {
                 lerp(heightGradient.r, heightGradient.g, smoothstep(0, .5, _CloudType)), 
                 heightGradient.b, 
                 smoothstep(.5, 1, _CloudType)),
-            _CloudShapeExponent);
-        // if(_CloudType < .5)
-        //     n *= lerp(heightGradient.r, heightGradient.g, _CloudType / .5);
-        // else
-        //     n *= lerp(heightGradient.g, heightGradient.b, (_CloudType - .5) / .5);
+            _CloudShapeExponent) * pow(heightGradient.a, _CloudShapeExponent);
     }
 
     inline float cloudDensity(float noise)
@@ -164,8 +181,38 @@ Shader "Cloud/Raymarching" {
     {
         return pow(length(v), 2);
     }
-    inline float rayHitSphere(float3 o, float3 p, float3 ray, float3 r)
+    inline bool rayHitSphere(float3 o, float3 p, float3 ray, float r, out float t)
     {
+        if(4*pow(dot(ray, o-p), 2) - 4*pow2(ray)*(pow2(o - p) - pow(r, 2)) < 0)
+        {
+            t = 0;
+            return false;
+        }
+        t = length(p - o) >= r
+            ? (1/pow2(ray) * (
+                dot(ray, o) 
+                - dot(ray, p)
+                - .5*sqrt(
+                    4*pow(dot(ray, o-p), 2)
+                    - 4*pow2(ray)*(
+                        pow2(o - p) - 
+                        pow(r, 2)
+                    )
+                )))
+            : (1/pow2(ray) * (
+                dot(ray, o) 
+                - dot(ray, p)
+                + .5*sqrt(
+                    4*pow(dot(ray, o-p), 2)
+                    - 4*pow2(ray)*(
+                        pow2(o - p) - 
+                        pow(r, 2)
+                    )
+                )
+            ));
+        if (t < 0)
+            return false;
+        return true;
         /*
         1/Norm[dir]^2 * (
             Dot[dir, o] 
@@ -179,17 +226,6 @@ Shader "Cloud/Raymarching" {
             ]
         )
         */
-        return 1/pow2(ray) * (
-            dot(ray, o) 
-            - dot(ray, p)
-            + .5*sqrt(
-                4*pow(dot(ray, o-p), 2)
-                - 4*pow2(ray)*(
-                    pow2(o - p) - 
-                    pow(r, 2)
-                )
-            )
-        );
 
     }
     inline float3 toSphereCoord(float3 p)
@@ -205,8 +241,9 @@ Shader "Cloud/Raymarching" {
         float3 coord = toSphereCoord(pos - earthCenter);
         float2 coverageUV = coord.xy / _CoverageScale;
         coord.xy /= _Scale;
-        coord.z = smoothstep(_GroundRadius + _CloudBottom, _GroundRadius + _CloudTop, coord.z);//
-        return cloudDensity(fbm(coord));// * smoothstep(_CoverageThreshold, 1, tex2D(_CoverageTex, coverageUV).r * .5 + .5);
+        float height = smoothstep(_GroundRadius + _CloudBottom, _GroundRadius + _CloudTop, coord.z);//
+        coord.z = height / _HeightScale;
+        return cloudDensity(sampleNoise(coord) * cloudShape(height));// * smoothstep(_CoverageThreshold, 1, tex2D(_CoverageTex, coverageUV).r * .5 + .5);
     }
 
     inline float attenuation(float d)
@@ -231,6 +268,7 @@ Shader "Cloud/Raymarching" {
         // occlusion += cloudDensityAt(pos + (lightDir * _ScatterDistance + normalize(float3(-1, -1, -1)) * _ScatterExtend) * 0.2);
         // occlusion += cloudDensityAt(pos + (lightDir * _ScatterDistance + normalize(float3(1, 1, 1)) * _ScatterExtend) * 0.2);
         // occlusion += cloudDensityAt(pos +(lightDir * _OcclusionSampleDistance));
+        
         for(float i = 1;i<6;i++)
         {
             occlusion += cloudDensityAt(pos + (lightDir *_ScatterDistance * (i / 5))) * .2;
@@ -241,56 +279,83 @@ Shader "Cloud/Raymarching" {
         return atten;// _MainLightColor * atten;
     }
 
+    inline float raymarchOcclusion(float3 pos)
+    {
+        float occlusion = 0;
+        float scatterDistance = (_CloudTop - _CloudBottom) * _ScatterDistanceMultiply;
+        [unroll]
+        for(float i = 1; i < 6; i++)
+        {
+            occlusion += cloudDensityAt(pos + (-_MainLightDirection * scatterDistance * (i / 5)))* (scatterDistance * .2);
+        }
+        return occlusion;
+    }
+
     #define MAX_ITERATION 128
+    #define IGNORE_DENSITY_THRESHOLD (0.0001) // Will not perform scatter lighting raymarch less than this value
 
     inline float raymarchingCloud(float3 ray, out float3 light)
     {
-        if(ray.y < 0)
-            return 0;
         light = 0;
-        float alpha = 0;
         float3 earthCenter = float3(0, -_GroundRadius, 0);
-
-        float near = rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudBottom);
-        float far = rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudTop);
-
+        float3 cameraCoord = toSphereCoord(_WorldCameraPos - earthCenter);
+        float near = 0, far = 0;
+        // Under cloud
+        float r = distance(_WorldCameraPos, earthCenter);
+        if(r < _GroundRadius + _CloudBottom)
+        {
+            rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudBottom, near);
+            rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudTop, far);
+            if((_WorldCameraPos + ray * far).y < 0)
+                far = 0;
+        }
+        // In cloud
+        else if (r < _GroundRadius + _CloudTop)
+        {
+            rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudTop, far);
+            if(rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudBottom, near))
+            {
+                far = near;
+                near = 0;
+            }
+            else
+                near = 0;
+        }
+        // Upon cloud
+        else
+        {
+            rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudTop, near);
+            if(!rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudBottom, far))
+                far = 0;
+        }
         if(far <= 0)
-            return 0;
-        near = near < 0 ? 0 : near;
-        float dist = near;
+            return 1;
+
+        float stepSize = (far - near) / _Samples;
+        float transmittance = 1;
 
         [loop]
         for(float i = 1; i <= _Samples; i++)
         {
-            dist = lerp(near, far, i / _Samples);
+            float dist = lerp(near, far, i / _Samples);
 
             float3 pos = _WorldCameraPos + dist * ray;
             float density = cloudDensityAt(pos);
-            light = 1;
-            //light = sampleLightScattered(pos, ray, dist, near, far) * (1 / _Samples);
-            // //float3 uv = float3(pos.x / _Scale, pos.y / (_CloudTop - _CloudBottom), pos.z / _Scale);
-            // float3 uv = toSphereCoord(pos - earthCenter);
-            // uv.xy /= _Scale;
-            // uv.z = smoothstep(_GroundRadius + _CloudBottom, _GroundRadius + _CloudTop, uv.z);
-            // //float3 coord = toSphereCoord(pos - earthCenter);
 
-            // // light = frac(uv);
-            // // return 1;
+            transmittance *= exp(-density * stepSize * _Absorption);
+            if(density < 0.000001)
+                continue;
 
-            // float density = cloudDensity(fbm(uv)); // TODO
+            float occlusion = raymarchOcclusion(pos);
 
-            // float d = dist - near;
-            // light += exp(-d * _BeerLawScale * density) * (1.0f / _Samples) * _Color.rgb * (1 - density);
-            /*density = cloudDensityAt(pos);
-            light = sampleLightScattered(pos, ray, dist, near, far);*/
-            alpha +=  density ;//
+            float lightTransmittance = exp(-occlusion * _AbsorptionToLight) * (1 - exp(-(occlusion + 0.01) * 2 * _PowderEffectScale));
 
-            /*if(alpha >= 1)
-                break;*/
+            light += _Color * _LightScale * lightTransmittance * density * transmittance * stepSize;
 
+            if(transmittance < IGNORE_DENSITY_THRESHOLD)
+                break;
         }
-        return exp(_Absorption * -alpha); 
-        return saturate(alpha);
+        return transmittance;
     }
 
 
@@ -305,36 +370,82 @@ Shader "Cloud/Raymarching" {
         float3 height = (pos.y - _CubePos.y + .5 * _CubeSize.y) / _CubeSize.y;
         coord.xz /= _Scale;
         coord.y /= _HeightScale;
-        return cloudDensity(sampleNoise(coord.xzy) * cloudShpe(height));
+        return cloudDensity(sampleNoise(coord.xzy) * cloudShape(height));
     }
-    float4 cloudTest(v2f i) : SV_TARGET
+
+    inline float intersect(float3 origin, float3 ray, float3 pos, float3 normal)
+    {
+        float t = (dot(normal, pos) - dot(normal, origin)) / dot(normal, ray);
+        
+        return t;
+    }
+
+    float4 cloudOnSky(v2f i) : SV_TARGET
+    {
+        float3 ray = normalize(i.ray);
+        float3 earthCenter = float3(0, -_GroundRadius, 0);
+        float d = 0;
+        float hit = rayHitSphere(earthCenter, _WorldCameraPos, ray, _GroundRadius + _CloudBottom, d);
+        float3 pos = _WorldCameraPos + ray * d;
+        float3 coord = toSphereCoord(pos - earthCenter);
+
+        // if(!hit)
+        //     return 0;
+        // return float4(frac(coord.xy), 0, 1);
+        float3 light;
+        float transmittance;
+        transmittance = raymarchingCloud(ray, light);
+
+        light = light / saturate(1 - transmittance + 0.0001);
+        float3 color = lerp(_DarkColor, _LightColor, light) * saturate(1 - transmittance);
+
+        return float4(color, saturate(1 - transmittance));
+    }
+
+    float4 cloudCube(v2f i) : SV_TARGET
     {
         float3 ray = normalize(i.worldPos - _WorldCameraPos);
-        float dist = length(i.worldPos - _WorldCameraPos);
-        float maxDist = length(_CubeSize);
+        float3 intersectA = float3(
+            intersect(_WorldCameraPos, ray, _CubePos + float3(.5,0,0) * _CubeSize, float3(1, 0, 0)),
+            intersect(_WorldCameraPos, ray, _CubePos + float3(0,.5,0) * _CubeSize, float3(0, 1, 0)),
+            intersect(_WorldCameraPos, ray, _CubePos + float3(0,0,.5) * _CubeSize, float3(0, 0, 1))
+        );
+        float3 intersectB = float3(
+            intersect(_WorldCameraPos, ray, _CubePos - float3(.5,0,0) * _CubeSize, float3(-1, 0, 0)),
+            intersect(_WorldCameraPos, ray, _CubePos - float3(0,.5,0) * _CubeSize, float3(0, -1, 0)),
+            intersect(_WorldCameraPos, ray, _CubePos - float3(0,0,.5) * _CubeSize, float3(0, 0, -1))
+        );
+        float3 front = min(intersectA, intersectB);
+        float3 back = max(intersectA, intersectB);
+        float near = max(front.x, max(front.y, front.z));
+        float far = min(back.x, min(back.y, back.z));
+        float dist = near;//length(i.worldPos - _WorldCameraPos);
+        float maxDist = far - near;//length(_CubeSize);
+        float raymarchingStepSize = maxDist / _Samples;
         float transmittance = 1;
         float3 light = 0;
+        //return float4(frac(near), frac(far), 0, 1);
 
         [loop]
         for(float i = 1; i <= _Samples; i++)
         {
-            dist += maxDist / _Samples;
+            dist += raymarchingStepSize;
             float3 pos = _WorldCameraPos + ray * dist;
             float3 d = abs(pos - _CubePos) - (_CubeSize / 2);
             if(length(saturate(d)) > 0)
                 break;
             float density = densityAt(pos);
 
-            transmittance *= exp(-density * (maxDist / _Samples) * _Absorption);
+            transmittance *= exp(-density * raymarchingStepSize * _Absorption);
 
             float occlusion = 0;
             [loop]
-            for(float i = 1;i<6;i++)
+            for(float i = 1; i < 6; i++)
             {
                 occlusion += densityAt(pos + (-_MainLightDirection *_ScatterDistance * (i / 5)))* (_ScatterDistance * .2);
             }
-            float lightTransmittance = exp(-occlusion * _AbsorptionToLight);
-            light += _Color * lightTransmittance * density * transmittance * (maxDist / _Samples) * 64;
+            float lightTransmittance = exp(-occlusion * _AbsorptionToLight) * (1 - exp(-(occlusion + 0.01) * 2 * _PowderEffectScale));
+            light += _Color * _LightScale * lightTransmittance * density * transmittance * raymarchingStepSize;
             if(transmittance < 0.01)
                 break;
         }
@@ -353,8 +464,6 @@ Shader "Cloud/Raymarching" {
         // return 0;
     }
 
-
-
     ENDHLSL
 
     SubShader{
@@ -362,12 +471,12 @@ Shader "Cloud/Raymarching" {
             Cull Off
             ZWrite Off
             ZTest Off
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha
             
             HLSLPROGRAM
 
-            #pragma vertex vert
-            #pragma fragment cloudTest
+            #pragma vertex cloudSkyVert
+            #pragma fragment cloudOnSky
 
             #pragma enable_d3d11_debug_symbols
 
@@ -382,8 +491,8 @@ Shader "Cloud/Raymarching" {
             
             HLSLPROGRAM
 
-            #pragma vertex vert
-            #pragma fragment cloudTest
+            #pragma vertex cloudCubeVert
+            #pragma fragment cloudCube
 
             #pragma enable_d3d11_debug_symbols
 

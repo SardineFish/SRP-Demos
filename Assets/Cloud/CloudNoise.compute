@@ -13,7 +13,7 @@ float Seed;
 void GenNoise (uint3 id : SV_DispatchThreadID)
 {
     OutputTexture[id.xyz] = float4(
-        perlinNoiseFBM(id.xyz / 64.0, 4, OutputSize / 64.0f, Seed) + worleyNoiseFBM(id.xyz / 64.0f, 4, OutputSize / 64.0f, Seed + 1.387),
+        perlinNoiseFBM(id.xyz / 64.0, 5, OutputSize / 64.0f, Seed) + worleyNoiseFBM(id.xyz / 64.0f, 5, OutputSize / 64.0f, Seed + 1.387),
         worleyNoiseFBM(id.xyz / 32.0, 4, OutputSize / 32.0f, Seed + 1.593),
         worleyNoiseFBM(id.xyz / 16.0, 3, OutputSize / 16.0f, Seed + 1.932),
         worleyNoiseFBM(id.xyz / 8.0, 2, OutputSize / 8.0f, Seed + 1.757)

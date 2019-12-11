@@ -1,0 +1,23 @@
+#pragma kernel GenNoise
+
+#include "PerlinNoise.hlsl"
+#include "WorleyNoise.hlsl"
+
+RWTexture3D<float4> OutputTexture;
+float3 OutputSize;
+float Scale;
+int Iteration;
+float Seed;
+
+[numthreads(8,8,8)]
+void GenNoise (uint3 id : SV_DispatchThreadID)
+{
+    OutputTexture[id.xyz] = float4(
+        worleyNoiseFBM(id.xyz / 32.0f, 3, OutputSize / 32.0f, Seed + 1.387),
+        worleyNoiseFBM(id.xyz / 16.0, 3, OutputSize / 16.0f, Seed + 1.593),
+        worleyNoiseFBM(id.xyz / 8.0, 3, OutputSize / 8.0f, Seed + 1.932),
+        worleyNoiseFBM(id.xyz / 4.0, 2, OutputSize / 4.0f, Seed + 1.757)
+    );
+}
+
+ 
