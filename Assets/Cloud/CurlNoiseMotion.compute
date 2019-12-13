@@ -1,0 +1,27 @@
+#pragma kernel GenNoise
+#pragma kernel InitTexture
+
+#include "PerlinNoise.hlsl"
+
+Texture2D<float2> CurlNoise;
+RWTexture2D<float2> CurrentMotion;
+RWTexture2D<float2> NextMotion;
+float2 TextureSize;
+float Speed;
+float DeltaTime;
+
+[numthreads(8,8,1)]
+void GenNoise (uint3 id : SV_DispatchThreadID)
+{
+    float2 pos = id.xy - CurlNoise[id.xy].xy * Speed * DeltaTime;
+    pos = (pos + TextureSize) % TextureSize;
+    
+    NextMotion[id.xy] = CurrentMotion[pos];
+}
+
+[numthreads(8,8,1)]
+void InitTexture(uint3 id : SV_DispatchThreadID)
+{
+    NextMotion[id.xy] = float2(id.xy) / TextureSize;
+    CurrentMotion[id.xy] = float2(id.xy) / TextureSize;
+}

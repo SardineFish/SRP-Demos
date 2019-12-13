@@ -649,7 +649,7 @@ MonoBehaviour:
   ComputeShader: {fileID: 7200000, guid: 748d879e069f4e14cb46e305b0aa0ba3, type: 3}
   Scale: 512
   FBMIteration: 10
-  Debug: 1
+  Debug: 0
 --- !u!114 &1065154392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -663,11 +663,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UpdatePerFrame: 0
-  Output: {fileID: 8400000, guid: fda2da247fe5670458698ecddad48ed3, type: 2}
-  ComputeShader: {fileID: 7200000, guid: d8acfd4732e2ff7438f466abc2bad6e2, type: 3}
+  Output: {fileID: 8400000, guid: 5d45fe3af7668d944a36d8e6ddf6914c, type: 2}
+  ComputeShader: {fileID: 7200000, guid: fe08da3166d93774da801b8b29981a60, type: 3}
   Scale: 64
   FBMIteration: 4
-  Debug: 0
+  Debug: 1
 --- !u!1 &1146537981
 GameObject:
   m_ObjectHideFlags: 0

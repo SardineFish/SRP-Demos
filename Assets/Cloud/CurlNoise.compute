@@ -2,7 +2,7 @@
 
 #include "PerlinNoise.hlsl"
 
-
+RWTexture2D<float2> OutputTexture;
 float3 OutputSize;
 float Scale;
 int Iteration;
@@ -10,13 +10,20 @@ float Seed;
 
 #define DELTA (0.0001)
 
-inline float2 curl(float2 pos)
+inline float2 curl(float2 pos, float2 repeatSize, float seed)
 {
-
+    float2 delta = float2(DELTA, 0);
+    float2 dn = float2(
+        perlinNoise(pos + delta.xy, repeatSize, seed) - perlinNoise(pos - delta.xy, repeatSize, seed),
+        perlinNoise(pos + delta.yx, repeatSize, seed) - perlinNoise(pos - delta.yx, repeatSize, seed)
+    );
+    float2 grad = dn / (2 * float2(DELTA, DELTA));
+    float2 curl = float2(grad.y, -grad.x);
+    return curl;
 }
 
-[numthreads(8,8,8)]
+[numthreads(8,8,1)]
 void GenNoise (uint3 id : SV_DispatchThreadID)
 {
-    OutputTexture[id.xyz] = perlinNoiseFBM(id.xyz / Scale, Iteration, OutputSize / Scale, Seed);
+    OutputTexture[id.xy] = normalize(curl(id.xy / Scale, OutputSize / Scale, Seed));
 }
