@@ -54,7 +54,7 @@ namespace SarRP.Noise
         {
             if(Debug)
             {
-                GUI.DrawTexture(new Rect(0, 0, Output.width, Output.height), Output, ScaleMode.ScaleToFit, false);
+                GUI.DrawTexture(new Rect(0, 0, 1024, 1024), Output, ScaleMode.ScaleToFit, false);
             }
         }
     }

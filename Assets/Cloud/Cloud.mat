@@ -76,22 +76,23 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Absorption: 41.58
-    - _AbsorptionToLight: 23.28
+    - _Absorption: 35.3
+    - _AbsorptionToLight: 8.9
+    - _AmbientStrength: 0
     - _BeerLawScale: 1
     - _BumpScale: 1
-    - _CloudBottom: 1000
-    - _CloudShapeExponent: 0.4
-    - _CloudThreshold: 0.299
-    - _CloudTop: 1978.77
+    - _CloudBottom: 6000
+    - _CloudShapeExponent: 0.3
+    - _CloudThreshold: 0.091
+    - _CloudTop: 9000
     - _CloudType: 1
-    - _CoverageScale: 3.6
+    - _CoverageScale: 4.11
     - _CoverageThreshold: 0.051
     - _Cutoff: 0.5
-    - _DensityScale: 0.001
+    - _DensityScale: 0.003
     - _DetailNormalMapScale: 1
-    - _DetailScale: 0.05
-    - _DetailStrength: 0.73
+    - _DetailScale: 0.08
+    - _DetailStrength: 0.25
     - _DstBlend: 0
     - _FBMOctave: 1
     - _Far: 30
@@ -100,21 +101,21 @@ Material:
     - _GlossyReflections: 1
     - _GroundRadius: 65920.77
     - _HeightOffset: 0
-    - _HeightScale: 7.34
-    - _LightScale: 42.9
+    - _HeightScale: 15.7
+    - _LightScale: 557.03
     - _Metallic: 0
     - _Mode: 0
     - _Near: 0
     - _OcclusionSampleDistance: 5
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PowderEffectScale: 290.4
-    - _Samples: 128
-    - _Scale: 0.2
+    - _PowderEffectScale: 1374.4
+    - _Samples: 64
+    - _Scale: 0.5
     - _ScatterDistance: 346.8
     - _ScatterDistanceMultiply: 0.48
     - _ScatterExtend: 1.8
-    - _ScatterFactor: 0
+    - _ScatterFactor: -0.22
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -124,8 +125,8 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DarkColor: {r: 0.6698113, g: 0.6698113, b: 0.6698113, a: 1}
+    - _DarkColor: {r: 0.4311143, g: 0.46582416, b: 0.5283019, a: 1}
     - _DetailAmplitude: {r: 0.5, g: 0.25, b: 0.125, a: 0.0625}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _LightColor: {r: 0.8962264, g: 0.8962264, b: 0.8962264, a: 1}
-    - _NoiseAmplitude: {r: 0.6, g: 0.5, b: 0.4, a: 0.3}
+    - _NoiseAmplitude: {r: 0.4, g: 0.25, b: 0.125, a: 0.0625}

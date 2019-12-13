@@ -1,0 +1,22 @@
+#pragma kernel GenNoise
+
+#include "PerlinNoise.hlsl"
+
+
+float3 OutputSize;
+float Scale;
+int Iteration;
+float Seed;
+
+#define DELTA (0.0001)
+
+inline float2 curl(float2 pos)
+{
+
+}
+
+[numthreads(8,8,8)]
+void GenNoise (uint3 id : SV_DispatchThreadID)
+{
+    OutputTexture[id.xyz] = perlinNoiseFBM(id.xyz / Scale, Iteration, OutputSize / Scale, Seed);
+}

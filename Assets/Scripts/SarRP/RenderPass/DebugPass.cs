@@ -21,6 +21,7 @@ namespace SarRP.Renderer
     }
     public class DebugPassRenderer : RenderPassRenderer<DebugPass>
     {
+        int lastRT = -1;
         Mesh fullscreenMesh;
         public DebugPassRenderer(DebugPass asset) : base(asset)
         {
@@ -32,6 +33,9 @@ namespace SarRP.Renderer
             var cmd = CommandBufferPool.Get(asset.name);
             cmd.DrawMesh(fullscreenMesh, Utility.ProjectionToWorldMatrix(renderingData.camera), asset.material);
             context.ExecuteCommandBuffer(cmd);
+
+            
+
             cmd.Clear();
             CommandBufferPool.Release(cmd);
         }

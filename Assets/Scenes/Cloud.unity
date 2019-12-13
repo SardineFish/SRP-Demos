@@ -647,8 +647,8 @@ MonoBehaviour:
   UpdatePerFrame: 0
   Output: {fileID: 8400000, guid: 4d0e9232c6b9fb64eadd2138a80a5784, type: 2}
   ComputeShader: {fileID: 7200000, guid: 748d879e069f4e14cb46e305b0aa0ba3, type: 3}
-  Scale: 128
-  FBMIteration: 6
+  Scale: 512
+  FBMIteration: 10
   Debug: 1
 --- !u!114 &1065154392
 MonoBehaviour:

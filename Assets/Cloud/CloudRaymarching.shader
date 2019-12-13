@@ -8,6 +8,7 @@ Shader "Cloud/Raymarching" {
         _Color("Color", Color) = (1, 1, 1, 1)
         _LightColor("Color", Color) = (1, 1, 1, 1)
         _DarkColor("Color", Color) = (.5, .5, .5, 1)
+        _AmbientStrength("AmbientStrength", Float) = 1
         _Scale("Scale", Float) = 1
         _HeightScale("Height Scale", Float) = 1
         _HeightOffset("Height Offset", Range(0, 1)) = 0
@@ -58,6 +59,13 @@ Shader "Cloud/Raymarching" {
     float _Step;
     float _Near;
     float _Far;
+    
+    float4 _MainLightDirection;
+    float4 _MainLightColor;
+    float4 _AmbientSkyColor;
+
+    StructuredBuffer<float3> _MotionPosBuffer;
+    float3 _MotionPosBufferSize;
 
     Texture3D _NoiseTex;
     Texture3D _DetailNoiseTex;
@@ -70,6 +78,7 @@ Shader "Cloud/Raymarching" {
     float4 _Color;
     float4 _LightColor;
     float4 _DarkColor;
+    float _AmbientStrength;
     float _Scale;
     float _HeightScale;
     float _DetailScale;
@@ -96,8 +105,6 @@ Shader "Cloud/Raymarching" {
     float _AbsorptionToLight;
     float _PowderEffectScale;
 
-    float4 _MainLightDirection;
-    float4 _MainLightColor;
 
     v2f cloudCubeVert(appdata_full i)
     {
@@ -292,7 +299,7 @@ Shader "Cloud/Raymarching" {
     }
 
     #define MAX_ITERATION 128
-    #define IGNORE_DENSITY_THRESHOLD (0.0001) // Will not perform scatter lighting raymarch less than this value
+    #define IGNORE_DENSITY_THRESHOLD (0.00001) // Will not perform scatter lighting raymarch less than this value
 
     inline float raymarchingCloud(float3 ray, out float3 light)
     {
@@ -343,16 +350,16 @@ Shader "Cloud/Raymarching" {
             float density = cloudDensityAt(pos);
 
             transmittance *= exp(-density * stepSize * _Absorption);
-            if(density < 0.000001)
+            if(density < IGNORE_DENSITY_THRESHOLD)
                 continue;
 
             float occlusion = raymarchOcclusion(pos);
 
             float lightTransmittance = exp(-occlusion * _AbsorptionToLight) * (1 - exp(-(occlusion + 0.01) * 2 * _PowderEffectScale));
 
-            light += _Color * _LightScale * lightTransmittance * density * transmittance * stepSize;
+            light += _Color * _MainLightColor * _LightScale * lightTransmittance * density * transmittance * stepSize * phaseHG(dot(-ray, -_MainLightDirection));
 
-            if(transmittance < IGNORE_DENSITY_THRESHOLD)
+            if(transmittance < 0.01)
                 break;
         }
         return transmittance;
@@ -397,6 +404,7 @@ Shader "Cloud/Raymarching" {
         transmittance = raymarchingCloud(ray, light);
 
         light = light / saturate(1 - transmittance + 0.0001);
+        light += _AmbientSkyColor * _AmbientStrength;
         float3 color = lerp(_DarkColor, _LightColor, light) * saturate(1 - transmittance);
 
         return float4(color, saturate(1 - transmittance));
