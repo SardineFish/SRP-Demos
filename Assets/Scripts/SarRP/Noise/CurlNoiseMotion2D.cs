@@ -34,6 +34,8 @@ namespace SarRP.Noise
             };
             MotionTextures[0].enableRandomWrite = true;
             MotionTextures[1].enableRandomWrite = true;
+            MotionTextures[0].wrapMode = TextureWrapMode.Repeat;
+            MotionTextures[1].wrapMode = TextureWrapMode.Repeat;
             MotionTextures[0].Create();
             MotionTextures[1].Create();
 

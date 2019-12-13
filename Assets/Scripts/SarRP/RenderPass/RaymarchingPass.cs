@@ -40,6 +40,7 @@ namespace SarRP.Renderer
                 return;
             var cmd = CommandBufferPool.Get("Ray-marching");
             cmd.Clear();
+            cmd.BeginSample("Volumetric Cloud Rendering");
 
             if(!(curlNoiseMotionRenderer is null))
             {
@@ -53,6 +54,12 @@ namespace SarRP.Renderer
             cmd.SetGlobalVector("_CameraClipPlane", new Vector3(renderingData.camera.nearClipPlane, renderingData.camera.farClipPlane, renderingData.camera.farClipPlane - renderingData.camera.nearClipPlane));
             cmd.SetGlobalMatrix("_ViewProjectionInverseMatrix", Utility.ProjectionToWorldMatrix(renderingData.camera));
             //cmd.Blit(BuiltinRenderTextureType.None, BuiltinRenderTextureType.CameraTarget, asset.material);
+
+            var curlNoiseMotion = Resources.FindObjectsOfTypeAll<Noise.CurlNoiseMotion2D>().FirstOrDefault();
+            if(curlNoiseMotion)
+            {
+                cmd.SetGlobalTexture("_CurlNoiseMotionTex", curlNoiseMotion.CurrentMotionTexture);
+            }
 
             if(asset.DrawFullScreen)
                 cmd.DrawMesh(screenMesh, Utility.ProjectionToWorldMatrix(renderingData.camera), asset.material, 0, 0);
@@ -109,6 +116,7 @@ namespace SarRP.Renderer
             }
             cmd.SetGlobalColor("_AmbientSkyColor", RenderSettings.ambientSkyColor);
             context.ExecuteCommandBuffer(cmd);
+            cmd.EndSample("Volumetric Cloud Rendering");
             cmd.Clear();
             CommandBufferPool.Release(cmd);
         }

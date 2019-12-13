@@ -12,6 +12,7 @@ float Seed;
 void GenNoise (uint3 id : SV_DispatchThreadID)
 {
     float noise = perlinNoiseFBM(id.xy / Scale, Iteration, OutputSize / Scale, Seed) * .5 + .5;
-    noise = smoothstep(.48,.62, noise);
+    noise = smoothstep(.42,.54, noise);
     OutputTexture[id.xy] = noise;
 }
+    

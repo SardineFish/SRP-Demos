@@ -36,6 +36,14 @@ Shader "Cloud/Raymarching" {
         _Absorption("Cloud Absorption", Float) = 1
         _AbsorptionToLight("Absorption To Light", Float) = 1
         _PowderEffectScale("Powder Effect", Float) = 1
+        _MotionSpeed("MotionSpeed", Float) = 1
+        _NoiseMotionVelocity("Noise Velocity", Vector) = (0, 0, 0, 0)
+        _DetailMotionVelocity("Detail Velocity", Vector) = (0, 0, 0, 0)
+        _CoverageMotionVelocity("Coverage Velocity", Vector) = (0, 0, 0, 0)
+        _CurlTexScale("Curl Noise Motion Scale", Float) = 1
+        _CurlMotionStrength("Curl Noise Motion Strength", Float) = 1
+        _DetailCurlScale("Detail Curl Motion  Scale", Float) = 1
+        _DetailCurlStrength("Detail Curl Motion Scale", Float) = 1
     }
 
     HLSLINCLUDE
@@ -63,9 +71,7 @@ Shader "Cloud/Raymarching" {
     float4 _MainLightDirection;
     float4 _MainLightColor;
     float4 _AmbientSkyColor;
-
-    StructuredBuffer<float3> _MotionPosBuffer;
-    float3 _MotionPosBufferSize;
+    sampler2D _CurlNoiseMotionTex;
 
     Texture3D _NoiseTex;
     Texture3D _DetailNoiseTex;
@@ -105,6 +111,15 @@ Shader "Cloud/Raymarching" {
     float _AbsorptionToLight;
     float _PowderEffectScale;
 
+    float _MotionSpeed;
+    float3 _NoiseMotionVelocity;
+    float3 _DetailMotionVelocity;
+    float2 _CoverageMotionVelocity;
+    float _CurlTexScale;
+    float _CurlMotionStrength;
+    float _DetailCurlScale;
+    float _DetailCurlStrength;
+    
 
     v2f cloudCubeVert(appdata_full i)
     {
@@ -128,16 +143,30 @@ Shader "Cloud/Raymarching" {
         return o;
     }
 
+    inline float2 curlNoiseMotion(float2 uv, float uvScale, float strength)
+    {
+        return tex2D(_CurlNoiseMotionTex, uv.xy / uvScale).xy * strength;
+    }
+
     inline float sampleNoise(float3 uv)
     {
         float3 detailUV = uv.xyz / _DetailScale;
         float2 coverageUV = uv.xy / _CoverageScale;
+        float3 cloudUV = uv.xyz;
+
+        // Apply motion
+        detailUV.xyz += _Time.y * _MotionSpeed * _DetailMotionVelocity;
+        //detailUV.xy += curlNoiseMotion(uv.xy, _DetailCurlScale, _DetailCurlStrength);
+        coverageUV += _Time.y * _MotionSpeed * _CoverageMotionVelocity;
+        cloudUV.xyz += _Time.y * _MotionSpeed * _NoiseMotionVelocity;
+        //cloudUV.xy += curlNoiseMotion(uv.xy, _CurlTexScale, _CurlMotionStrength);
+
         float coverage = tex2D(_CoverageTex, coverageUV).r;
-        float4 noise = _NoiseTex.Sample(noise_linear_repeat_sampler, uv).rgba;
+        float4 noise = _NoiseTex.Sample(noise_linear_repeat_sampler, cloudUV).rgba;
         float4 detailNoise = _DetailNoiseTex.Sample(detail_linear_repeat_sampler, detailUV).rgba;
         float n = dot(noise, _NoiseAmplitude);
         float dn = dot(detailNoise, _DetailAmplitude);
-        dn = lerp(-dn, dn, saturate(uv.z * _HeightScale * 4));
+        dn = lerp(-dn, dn, saturate(cloudUV.z * _HeightScale * 4));
         n -= dn * _DetailStrength;
         return n * coverage;
     }
