@@ -115,8 +115,8 @@ namespace SarRP.Renderer
                 cmd.SetGlobalVector("_MainLightPosition", Vector4.zero);
             }
             cmd.SetGlobalColor("_AmbientSkyColor", RenderSettings.ambientSkyColor);
-            context.ExecuteCommandBuffer(cmd);
             cmd.EndSample("Volumetric Cloud Rendering");
+            context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
         }

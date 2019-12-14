@@ -2,7 +2,14 @@
 
 float4 _MainLightDirection;
 float4 _MainLightColor;
+float4x4 _ViewProjectionInverseMatrix;
+float3 _WorldCameraPos;
 
+struct v2f_light
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+};
 
 struct v2f
 {
@@ -14,6 +21,21 @@ struct v2f
 	float3 t2w2: TEXCOORD4;
     float4 screenPos : TEXCOORD5;
 };
+
+struct v2f_ray
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+	float3 ray : TEXCOORD1;
+};
+
+v2f_light light_vert(appdata_full i)
+{
+	v2f_light o;
+	o.pos = UnityObjectToClipPos(i.vertex);
+	o.uv = i.texcoord;
+	return o;
+}
 
 v2f default_vert(appdata_full i)
 {
@@ -29,6 +51,20 @@ v2f default_vert(appdata_full i)
 	o.t2w2 = float3(worldTangent.z, worldBinormal.z, worldNormal.z);
     o.screenPos = ComputeScreenPos(o.pos);
     return o;
+}
+
+v2f_ray vert_ray(appdata_full i)
+{
+	v2f_ray o;
+    o.pos = float4(i.vertex.x, i.vertex.y * _ProjectionParams.x, 1, 1);
+    o.uv = i.texcoord;
+	o.uv.y = 1 - o.uv.y;
+    float4 p = float4(i.vertex.x, i.vertex.y, 1, 1);
+    p = p * _ProjectionParams.z;
+    float3 worldPos = mul(_ViewProjectionInverseMatrix, float4(p.xyzw));
+    o.ray = worldPos - _WorldCameraPos;
+	o.ray = normalize(o.ray) * length(o.ray) * _ProjectionParams.w;
+	return o;
 }
 
 inline float3 tangentSpaceToWorld(v2f i, float3 v)

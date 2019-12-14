@@ -16,5 +16,5 @@ MonoBehaviour:
   m_RenderPasses:
   - {fileID: 11400000, guid: 6cae8da538c9dab4da6657bfb47a7e74, type: 2}
   - {fileID: 11400000, guid: f2c8dca23465cfe4eac9d537b80edbe1, type: 2}
-  - {fileID: 0}
   - {fileID: 11400000, guid: a31d60518ec69c2479b98389f6296515, type: 2}
+  - {fileID: 11400000, guid: 4b68b0f8685a48543899165fe57839af, type: 2}
