@@ -24,7 +24,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CoverageTex:
-        m_Texture: {fileID: 8400000, guid: 4d0e9232c6b9fb64eadd2138a80a5784, type: 2}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -36,7 +36,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailNoiseTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 8400000, guid: 41720525bf4df7040b8e5525c0e0afa9, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailNormalMap:
@@ -76,43 +76,51 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Absorption: 44.17
-    - _AbsorptionToLight: 8.7
+    - _Absorption: 85.16
+    - _AbsorptionToLight: 1.69
+    - _AmbientStrength: 0
     - _BeerLawScale: 1
     - _BumpScale: 1
-    - _CloudBottom: 6
-    - _CloudShapeExponent: 0.73
-    - _CloudThreshold: 0.149
-    - _CloudTop: 300
+    - _CloudBottom: 0
+    - _CloudShapeExponent: 0.3
+    - _CloudThreshold: 0.256
+    - _CloudTop: 1
     - _CloudType: 1
-    - _CoverageScale: 9.09
+    - _CoverageScale: 4.11
     - _CoverageThreshold: 0.051
+    - _CurlMotionStrength: 0
+    - _CurlTexScale: 1
     - _Cutoff: 0.5
     - _DensityScale: 2
+    - _DetailCurlScale: 0
+    - _DetailCurlStrength: 0
     - _DetailNormalMapScale: 1
+    - _DetailScale: 0.06
+    - _DetailStrength: 0
     - _DstBlend: 0
     - _FBMOctave: 1
     - _Far: 30
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _GroundRadius: 5265.62
+    - _GroundRadius: 50
     - _HeightOffset: 0
-    - _HeightScale: 7.73
-    - _LightScale: 64
+    - _HeightScale: 6.4
+    - _LightScale: 52.1
     - _Metallic: 0
     - _Mode: 0
+    - _MotionSpeed: 0.001
     - _Near: 0
-    - _OcclusionSampleDistance: 5
+    - _OcclusionSampleDistance: 1.7
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PowderEffectScale: 120
+    - _PowderEffectScale: 1415
     - _Samples: 64
-    - _Scale: 7.81
-    - _ScatterDistance: 0.72
-    - _ScatterDistanceMultiply: 0.5
+    - _Scale: 10
+    - _ScatterDistance: 346.8
+    - _ScatterDistanceMultiply: 0.69
     - _ScatterExtend: 1.8
-    - _ScatterFactor: 0
+    - _ScatterFactor: -0.22
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -121,8 +129,12 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.7924528, g: 0.7924528, b: 0.7924528, a: 1}
-    - _DarkColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _CoverageMotionVelocity: {r: -1, g: 0, b: 0, a: 0}
+    - _DarkColor: {r: 0, g: 0, b: 0, a: 1}
+    - _DetailAmplitude: {r: 0.5, g: 0.25, b: 0.125, a: 0.0625}
+    - _DetailMotionVelocity: {r: -5, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _LightColor: {r: 0.9622642, g: 0.9622642, b: 0.9622642, a: 1}
-    - _NoiseAmplitude: {r: 0.5, g: 0.25, b: 0.125, a: 0.0625}
+    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _NoiseAmplitude: {r: 1, g: 0, b: 0, a: 0}
+    - _NoiseMotionVelocity: {r: 1, g: 2, b: 3, a: 0}

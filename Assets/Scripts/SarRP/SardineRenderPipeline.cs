@@ -31,8 +31,13 @@ namespace SarRP
         }
         protected virtual void RenderCamera(ScriptableRenderContext context, Camera camera)
         {
-            camera.TryGetCullingParameters(out var cullingParameters);
+            var p = Matrix4x4.Perspective(30, 16.0f / 9, .3f, 1000);
+            var v = new Vector4(.5f, .5f, 10, 1);
+            if (camera.name == "Main Camera")
+                v = v;
 
+            camera.TryGetCullingParameters(out var cullingParameters);
+            
             var cmd = CommandBufferPool.Get(camera.name);
 
             cmd.Clear();

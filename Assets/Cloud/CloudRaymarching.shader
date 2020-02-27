@@ -479,7 +479,7 @@ Shader "Cloud/Raymarching" {
             [loop]
             for(float i = 1; i < 6; i++)
             {
-                occlusion += densityAt(pos + (-_MainLightDirection *_ScatterDistance * (i / 5)))* (_ScatterDistance * .2);
+                occlusion += densityAt(pos + (-_MainLightDirection *_ScatterDistanceMultiply * (i / 5)))* (_ScatterDistanceMultiply * .2);
             }
             float lightTransmittance = exp(-occlusion * _AbsorptionToLight) * (1 - exp(-(occlusion + 0.01) * 2 * _PowderEffectScale));
             light += _Color * _LightScale * lightTransmittance * density * transmittance * raymarchingStepSize;

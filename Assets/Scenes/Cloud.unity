@@ -760,7 +760,7 @@ MonoBehaviour:
   ComputeShader: {fileID: 7200000, guid: 748d879e069f4e14cb46e305b0aa0ba3, type: 3}
   Scale: 512
   FBMIteration: 10
-  Debug: 0
+  Debug: 1
 --- !u!114 &1065154392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -998,7 +998,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b013ef537b03d754d867f3fd816afa86, type: 2}
+  - {fileID: 2100000, guid: c893499ac1e8adb44a642454b9539fc7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1035,8 +1035,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1639041504}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.01, y: 3.27, z: -2.28}
-  m_LocalScale: {x: 6.596853, y: 1.9311256, z: 7.6748405}
+  m_LocalPosition: {x: -8.37, y: 3.27, z: -5.91}
+  m_LocalScale: {x: 6.596853, y: 2.3005664, z: 7.6748405}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4

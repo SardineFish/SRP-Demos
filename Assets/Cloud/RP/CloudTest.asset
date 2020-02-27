@@ -16,4 +16,6 @@ MonoBehaviour:
   near: 0
   far: 0
   step: 0
-  material: {fileID: 2100000, guid: b013ef537b03d754d867f3fd816afa86, type: 2}
+  material: {fileID: 2100000, guid: c893499ac1e8adb44a642454b9539fc7, type: 2}
+  CurlNoiseMotionComputeShader: {fileID: 0}
+  CurlNoiseTexture: {fileID: 0}

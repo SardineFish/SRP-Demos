@@ -77,14 +77,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Absorption: 35.3
-    - _AbsorptionToLight: 8.9
+    - _AbsorptionToLight: 605.32
     - _AmbientStrength: 0
     - _BeerLawScale: 1
     - _BumpScale: 1
-    - _CloudBottom: 6000
+    - _CloudBottom: 1500
     - _CloudShapeExponent: 0.3
-    - _CloudThreshold: 0.091
-    - _CloudTop: 9000
+    - _CloudThreshold: 0.099
+    - _CloudTop: 4000
     - _CloudType: 1
     - _CoverageScale: 4.11
     - _CoverageThreshold: 0.051
@@ -95,8 +95,8 @@ Material:
     - _DetailCurlScale: 0
     - _DetailCurlStrength: 0
     - _DetailNormalMapScale: 1
-    - _DetailScale: 0.08
-    - _DetailStrength: 0.25
+    - _DetailScale: 0.06
+    - _DetailStrength: 0.22
     - _DstBlend: 0
     - _FBMOctave: 1
     - _Far: 30
@@ -109,7 +109,7 @@ Material:
     - _LightScale: 557.03
     - _Metallic: 0
     - _Mode: 0
-    - _MotionSpeed: 0.005
+    - _MotionSpeed: 0.001
     - _Near: 0
     - _OcclusionSampleDistance: 5
     - _OcclusionStrength: 1
@@ -131,10 +131,10 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _CoverageMotionVelocity: {r: -1, g: 0, b: 0, a: 0}
-    - _DarkColor: {r: 0.45523316, g: 0.5019152, b: 0.5849056, a: 1}
+    - _DarkColor: {r: 0.6053756, g: 0.6459595, b: 0.7169812, a: 1}
     - _DetailAmplitude: {r: 0.5, g: 0.25, b: 0.125, a: 0.0625}
     - _DetailMotionVelocity: {r: -5, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _LightColor: {r: 0.8962264, g: 0.8962264, b: 0.8962264, a: 1}
+    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
     - _NoiseAmplitude: {r: 0.4, g: 0.25, b: 0.125, a: 0.0625}
     - _NoiseMotionVelocity: {r: 1, g: 2, b: 3, a: 0}
