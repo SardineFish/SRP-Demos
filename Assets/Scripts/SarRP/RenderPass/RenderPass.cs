@@ -29,5 +29,10 @@ namespace SarRP.Renderer
         {
 
         }
+
+        public virtual void Cleanup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+
+        }
     }
 }

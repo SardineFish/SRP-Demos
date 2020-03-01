@@ -13,5 +13,8 @@ namespace SarRP
         public Camera camera;
         public CullingResults cullResults;
         public Unity.Collections.NativeArray<VisibleLight> lights;
+        public RenderTargetIdentifier ColorTarget;
+        public RenderTargetIdentifier DepthTarget;
+        public Dictionary<Light, Renderer.ShadowMapData> shadowMapData;
     }
 }

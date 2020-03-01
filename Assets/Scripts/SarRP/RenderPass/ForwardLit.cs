@@ -36,6 +36,10 @@ namespace SarRP.Renderer
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                cmd.SetRenderTarget(renderingData.ColorTarget, renderingData.DepthTarget);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 SetupLights(context, ref renderingData);
 
                 FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
@@ -58,11 +62,22 @@ namespace SarRP.Renderer
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
-            renderingData.lights = renderingData.cullResults.visibleLights;
             var mainLightIdx = GetMainLightIndex(ref renderingData);
             if (mainLightIdx >= 0)
             {
                 var mainLight = renderingData.lights[GetMainLightIndex(ref renderingData)];
+                if (renderingData.shadowMapData.ContainsKey(mainLight.light))
+                {
+                    var shadowData = renderingData.shadowMapData[mainLight.light];
+                    cmd.SetGlobalMatrix("_WorldToLight", shadowData.world2Light);
+                    cmd.SetGlobalTexture("_ShadowMap", shadowData.shadowMapIdentifier);
+                    cmd.SetGlobalFloat("_ShadowBias", shadowData.bias);
+                }
+                else
+                {
+                    cmd.SetGlobalMatrix("_WorldToLight", Matrix4x4.identity);
+                    cmd.SetGlobalTexture("_ShadowMap", BuiltinRenderTextureType.None);
+                }
 
                 cmd.SetGlobalColor("_MainLightColor", mainLight.finalColor);
                 cmd.SetGlobalVector("_MainLightDirection", mainLight.light.transform.forward);
@@ -72,6 +87,7 @@ namespace SarRP.Renderer
                 cmd.SetGlobalColor("_MainLightColor", Color.black);
                 cmd.SetGlobalVector("_MainLightPosition", Vector4.zero);
             }
+            cmd.SetGlobalColor("_AmbientLight", RenderSettings.ambientLight);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
