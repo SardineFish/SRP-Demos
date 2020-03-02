@@ -53,6 +53,8 @@ public static class MathUtility
     {
         return new Vector2(v.x, v.z);
     }
+    public static Vector4 ToVector4(this Vector3 v, float w = 0)
+        => new Vector4(v.x, v.y, v.z, w);
     public static Vector2 Abs(this Vector2 v)
     {
         return new Vector2(Mathf.Abs(v.x), Mathf.Abs(v.y));

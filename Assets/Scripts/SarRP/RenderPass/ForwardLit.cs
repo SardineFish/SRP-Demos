@@ -79,8 +79,11 @@ namespace SarRP.Renderer
                     cmd.SetGlobalTexture("_ShadowMap", BuiltinRenderTextureType.None);
                 }
 
+                if (mainLight.light.type == LightType.Directional)
+                    cmd.SetGlobalVector("_MainLightPosition", -mainLight.light.transform.forward.ToVector4(0));
+                else
+                    cmd.SetGlobalVector("_MainLightPosition", mainLight.light.transform.position.ToVector4(1));
                 cmd.SetGlobalColor("_MainLightColor", mainLight.finalColor);
-                cmd.SetGlobalVector("_MainLightDirection", mainLight.light.transform.forward);
             }
             else
             {

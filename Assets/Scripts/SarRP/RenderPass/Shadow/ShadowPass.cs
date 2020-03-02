@@ -64,6 +64,7 @@ namespace SarRP.Renderer
             cmd.Clear();
             var depthBuf = IdentifierPool.Get();
             var colorBuf = IdentifierPool.Get();
+
             cmd.GetTemporaryRT(depthBuf, settings.Resolution, settings.Resolution, 32, FilterMode.Point, RenderTextureFormat.Depth);
 
             cmd.GetTemporaryRT(colorBuf, settings.Resolution, settings.Resolution);

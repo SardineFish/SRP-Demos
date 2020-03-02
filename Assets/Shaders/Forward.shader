@@ -33,26 +33,9 @@ Shader "SarRP/ForwardDefault" {
             float _BumpScale;
 
             float4 _AmbientLight;
-            float _ShadowBias;
-            float4x4 _WorldToLight;
-            sampler2D _ShadowMap;
 
             inline float3 diffuseLambert(float3 albedo){
                 return albedo / PI;
-            }
-
-            float shadow(float3 worldPos)
-            {
-                float4 p = float4(worldPos.xyz, 1);
-                p = mul(_WorldToLight, p);
-                p /= p.w;
-                p.z = 1 - (0.5 * p.z + .5);
-                float2 uv = p.xy * .5 + .5;
-                float shadowDepth = tex2D(_ShadowMap, uv);
-
-                //return float4(shadowDepth, p.z, 0, 1);
-
-                return step(shadowDepth, p.z + _ShadowBias);
             }
 
 			float4 frag(v2f i):SV_TARGET{
@@ -68,7 +51,8 @@ Shader "SarRP/ForwardDefault" {
                 normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
                 
 				normal = normalize(float3(dot(normal, i.t2w0.xyz), dot(normal, i.t2w1.xyz), dot(normal, i.t2w2.xyz)));
-				float3 lightDir = -_MainLightDirection;
+				float3 lightDir, lightColor;
+                lightAt(i.worldPos, lightDir, lightColor);
 				float3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
 
 				float3 halfDir = normalize(lightDir + viewDir);
@@ -81,7 +65,7 @@ Shader "SarRP/ForwardDefault" {
                 //return float4(i.worldPos, 1);
                 //return shadow(i.worldPos);
 
-                float3 light = shadow(i.worldPos) * _MainLightColor;// * atten;
+                float3 light = shadowAt(i.worldPos) * lightColor;// * atten;
 
 				float3 diffuseTerm = PI * diffuseLambert(albedo.rgb) * light * nl + ambient;
 				float3 color = diffuseTerm;
