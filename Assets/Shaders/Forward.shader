@@ -19,6 +19,7 @@ Shader "SarRP/ForwardDefault" {
 
 			#include "UnityCG.cginc"
             #include "./Lib.hlsl"
+            #include "./Shadow/ShadowLib.hlsl" 
 
             #pragma vertex default_vert
             #pragma fragment frag
