@@ -9,8 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d71197d222836ef4e94b7938f8b20d6d, type: 3}
-  m_Name: TransparentPass
+  m_Script: {fileID: 11500000, guid: aa1e20390ae02dd44bea1ba58ecd9260, type: 3}
+  m_Name: NDCVisualize
   m_EditorClassIdentifier: 
-  UseDepthPeeling: 1
-  DepthPeelingPass: 3

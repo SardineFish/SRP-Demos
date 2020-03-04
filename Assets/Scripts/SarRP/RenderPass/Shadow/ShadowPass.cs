@@ -18,6 +18,8 @@ namespace SarRP.Renderer
     }
     public partial class ShadowPassRenderer : RenderPassRenderer<ShadowPass>
     {
+        const int PassSimple = 0;
+        const int PassPSM = 1;
         public Dictionary<Light, ShadowMapData> LightMaps = new Dictionary<Light, ShadowMapData>();
         Material shadowMapMat;
         public ShadowPassRenderer(ShadowPass asset) : base(asset)
@@ -48,6 +50,10 @@ namespace SarRP.Renderer
                             data = SimpleShadowMap(context, renderingData, shadowSettings, i);
                             hasData = true;
                             break;
+                        case ShadowAlgorithms.PSM:
+                            data = PSMShadowMap(context, renderingData, shadowSettings, i);
+                            hasData = true;
+                            break;
                     }
                     if (hasData)
                     {
@@ -63,11 +69,9 @@ namespace SarRP.Renderer
             var cmd = CommandBufferPool.Get();
             cmd.Clear();
             var depthBuf = IdentifierPool.Get();
-            var colorBuf = IdentifierPool.Get();
 
             cmd.GetTemporaryRT(depthBuf, settings.Resolution, settings.Resolution, 32, FilterMode.Point, RenderTextureFormat.Depth);
 
-            cmd.GetTemporaryRT(colorBuf, settings.Resolution, settings.Resolution);
             RenderTargetBinding binding = new RenderTargetBinding();
             binding.depthRenderTarget = depthBuf;
             cmd.SetRenderTarget(depthBuf);
@@ -77,6 +81,7 @@ namespace SarRP.Renderer
             {
                 shadowMapIdentifier = depthBuf,
                 bias = settings.Bias,
+                ShadowType = ShadowAlgorithms.Simple,
             };
 
 
@@ -93,6 +98,55 @@ namespace SarRP.Renderer
             cmd.Clear();
 
 
+            DrawShadowCasters(context, renderingData, shadowMapData, PassSimple);
+
+            cmd.SetViewProjectionMatrices(renderingData.camera.worldToCameraMatrix, renderingData.camera.projectionMatrix);
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            CommandBufferPool.Release(cmd);
+
+            return shadowMapData;
+        }
+        
+        ShadowMapData PSMShadowMap(ScriptableRenderContext context, RenderingData renderingData, ShadowSettings settings, int lightIndex)
+        {
+            var (view, projection, inverseZ) = Utils.PSMProjection(lightIndex, renderingData);
+            //Debug.Log(inverseZ);
+            Vector4 p = new Vector4(-0.46017f, 0.16764f, 0.01015f, 1.00f);
+            var p1 = projection * view * p;
+            var p2 = GL.GetGPUProjectionMatrix(projection, false) * Matrix4x4.Scale(new Vector3(1, 1, -1)) * view * p;
+
+            ShadowMapData shadowMapData = new ShadowMapData()
+            {
+                shadowMapIdentifier = IdentifierPool.Get(),
+                world2Light = GL.GetGPUProjectionMatrix(projection, true) * Matrix4x4.Scale(new Vector3(1, 1, -1)) * view,
+                bias = settings.Bias,
+                ShadowType = ShadowAlgorithms.PSM,
+                ShadowParameters = new Vector4(inverseZ ? 1 : 0, 0, 0),
+            };
+
+            var cmd = CommandBufferPool.Get();
+            cmd.GetTemporaryRT(shadowMapData.shadowMapIdentifier, settings.Resolution, settings.Resolution, 32, FilterMode.Point, RenderTextureFormat.Depth);
+            cmd.SetRenderTarget(shadowMapData.shadowMapIdentifier);
+            cmd.SetGlobalVector("_ShadowParameters", shadowMapData.ShadowParameters);
+            cmd.SetGlobalDepthBias(1, 1);
+            //cmd.SetViewProjectionMatrices(renderingData.camera.worldToCameraMatrix, renderingData.camera.projectionMatrix);
+            cmd.ClearRenderTarget(true, true, Color.black);
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            DrawShadowCasters(context, renderingData, shadowMapData, PassPSM);
+
+            CommandBufferPool.Release(cmd);
+
+            return shadowMapData;
+        }
+
+        void DrawShadowCasters(ScriptableRenderContext context, RenderingData renderingData, ShadowMapData shadowMapData, int pass)
+        {
             /*FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
             SortingSettings sortingSettings = new SortingSettings(renderingData.camera);
             sortingSettings.criteria = SortingCriteria.CommonOpaque;
@@ -104,21 +158,15 @@ namespace SarRP.Renderer
             };
             RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);*/
-            foreach(var renderer in  GameObject.FindObjectsOfType<MeshRenderer>())
+            var cmd = CommandBufferPool.Get();
+            cmd.SetGlobalMatrix("_LightViewProjection", shadowMapData.world2Light);
+            foreach (var renderer in GameObject.FindObjectsOfType<MeshRenderer>())
             {
-                cmd.DrawRenderer(renderer, shadowMapMat);
+                cmd.DrawRenderer(renderer, shadowMapMat, 0, pass);
             }
-
-            cmd.SetViewProjectionMatrices(renderingData.camera.worldToCameraMatrix, renderingData.camera.projectionMatrix);
-
-            cmd.ReleaseTemporaryRT(colorBuf);
-            IdentifierPool.Release(colorBuf);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
-
             CommandBufferPool.Release(cmd);
-
-            return shadowMapData;
         }
 
         public override void Cleanup(ScriptableRenderContext context, ref RenderingData renderingData)

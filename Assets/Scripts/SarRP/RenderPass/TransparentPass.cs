@@ -32,6 +32,8 @@ namespace SarRP.Renderer
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                cmd.SetRenderTarget(renderingData.ColorTarget, renderingData.DepthTarget);
+
                 if (!asset.UseDepthPeeling)
                     RenderDefaultTransparent(context, ref renderingData);
                 else
@@ -113,17 +115,17 @@ namespace SarRP.Renderer
                     }
                 }
                 
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+                cmd.SetRenderTarget(renderingData.ColorTarget, renderingData.DepthTarget);
                 var mat = new Material(Shader.Find("SarRP/Transparent"));
                 for (var i = asset.DepthPeelingPass - 1; i >= 0; i--)
                 {
                     cmd.SetGlobalTexture("_DepthTex", depthRTs[i]);
-                    cmd.Blit(colorRTs[i], BuiltinRenderTextureType.CameraTarget, mat, 4);
+                    cmd.Blit(colorRTs[i], renderingData.ColorTarget, mat, 4);
 
                     cmd.ReleaseTemporaryRT(depthRTs[i]);
                     cmd.ReleaseTemporaryRT(colorRTs[i]);
                 }
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+                cmd.SetRenderTarget(renderingData.ColorTarget, renderingData.DepthTarget);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 

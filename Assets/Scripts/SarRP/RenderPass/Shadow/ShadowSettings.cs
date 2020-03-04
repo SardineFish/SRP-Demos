@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum ShadowAlgorithms
+public enum ShadowAlgorithms : int
 {
-    Simple,
-    TSM,
-    PSM,
-    LiSPSM,
+    Simple = 0,
+    PSM = 1,
+    TSM = 2,
+    LiSPSM = 3,
 }
 [RequireComponent(typeof(Light))]
 public class ShadowSettings : MonoBehaviour

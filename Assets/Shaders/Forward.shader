@@ -24,6 +24,8 @@ Shader "SarRP/ForwardDefault" {
             #pragma vertex default_vert
             #pragma fragment frag
 
+            #pragma enable_d3d11_debug_symbols
+
 			#define PI 3.14159265358979323846264338327950288419716939937510
 
             float4 _Color;
@@ -65,8 +67,8 @@ Shader "SarRP/ForwardDefault" {
 
                 //return float4(i.worldPos, 1);
                 //return shadow(i.worldPos);
-
-                float3 light = shadowAt(i.worldPos) * lightColor;// * atten;
+                //return  shadowAt(i) ;
+                float3 light = shadowAt(i) * lightColor;// * atten;
 
 				float3 diffuseTerm = PI * diffuseLambert(albedo.rgb) * light * nl + ambient;
 				float3 color = diffuseTerm;

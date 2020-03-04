@@ -21,6 +21,7 @@ struct v2f
 	float3 t2w1: TEXCOORD3;
 	float3 t2w2: TEXCOORD4;
     float4 screenPos : TEXCOORD5;
+	float4 clipPos : TEXCOORD6;
 };
 
 struct v2f_ray
@@ -51,6 +52,7 @@ v2f default_vert(appdata_full i)
 	o.t2w1 = float3(worldTangent.y, worldBinormal.y, worldNormal.y);
 	o.t2w2 = float3(worldTangent.z, worldBinormal.z, worldNormal.z);
     o.screenPos = ComputeScreenPos(o.pos);
+	o.clipPos = o.pos;
     return o;
 }
 

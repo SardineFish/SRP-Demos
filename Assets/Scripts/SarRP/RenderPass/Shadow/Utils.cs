@@ -130,6 +130,41 @@ namespace SarRP.Renderer
                 return frustum;
             }
 
+            public static (Matrix4x4 view, Matrix4x4 projection, bool inverseZ) PSMProjection(int lightIndex, RenderingData renderingData)
+            {
+                var camera = GameObject.Find("Main Camera").GetComponent<Camera>();
+                var cameraView = camera.worldToCameraMatrix;
+                var cameraProjection = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+             
+                var light = renderingData.cullResults.visibleLights[lightIndex].light;
+                var p = light.transform.forward.ToVector4(1);
+                var l = light.transform.forward.ToVector4(0);
+                var pView = cameraView * p;
+                var lView = cameraView * l;
+                var lClip = cameraProjection * lView.ToVector3().normalized.ToVector4(0);
+                var pClip = cameraProjection * lView.ToVector3().normalized.ToVector4(1);
+                var lightNDC = lClip / pClip.w;
+
+                var lightView = Matrix4x4.LookAt(lightNDC.ToVector3(), Vector3.forward * .5f, Vector3.up).inverse;
+
+                var ndcBounds = new Bounds(Vector3.forward * 0.5f, new Vector3(2, 2, 1));
+                var ndcBoundVerts = new Vector3[8];
+                for (int x = -1, i = 0; x <= 1; x += 2)
+                    for (int y = -1; y <= 1; y += 2)
+                        for (int z = -1; z <= 1; z += 2)
+                            ndcBoundVerts[i++] = ndcBounds.center + Vector3.Scale(ndcBounds.extents, new Vector3(x, y, z));
+
+                var frustum = BestfitFrustum(false, lightView, ndcBoundVerts);
+
+                var inverseZ = Vector3.Dot(lView, -lightNDC.ToVector3()) < 0;
+
+                DrawFrustum(frustum, false, lightView.inverse);
+                DrawBound(ndcBounds, Color.magenta);
+                Debug.DrawLine(Vector3.forward * 0.5f, lightNDC.ToVector3());
+
+                return (lightView, Matrix4x4.Frustum(frustum), inverseZ);
+            }
+
             public static void DrawFrustum(FrustumPlanes frustum, bool orthographic, Matrix4x4 transform)
             {
                 var verts = new Vector3[]
