@@ -1,11 +1,14 @@
 # SRP Test Project
 
-Repository for a simple Scriptable Render Pipeline implement & SRP API Test.
+Demos for real-time rendering technics implemented with Unity Scriptable Render Pipeline.
 
-## Clone & resolve packages
+with Unity 2019.3
 
-```shell
-$ git clone https://github.com/SardineFish/SimpleSRP.git
-$ cd SimpleSRP
-$ git submodule update --init --recursive
-```
+## Implements
+
+- Simple physically based forward rendering.
+- Order independent transparency rendering with depth peeling.
+- Volumetric cloud rendering.
+- Real-time shadow rendering.
+  - Simple uniform shadow map.
+  - Perspective Shadow Map.
