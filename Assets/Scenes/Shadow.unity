@@ -333,7 +333,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &784888497
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -714,7 +714,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &855225873
 Transform:
   m_ObjectHideFlags: 0
@@ -1002,14 +1002,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1338260077}
-  m_LocalRotation: {x: -0.61440897, y: 0.29283756, z: 0.3573809, w: -0.639552}
+  m_LocalRotation: {x: 0.8793478, y: -0.22168072, z: -0.15977862, w: 0.38996917}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 822033407}
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: -575.211, y: 1175.161, z: 809.268}
+  m_LocalEulerAnglesHint: {x: 37.952003, y: 215.144, z: 220.728}
 --- !u!114 &1338260080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1023,11 +1023,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Shadow: 1
-  Algorithms: 1
+  Algorithms: 0
   Resolution: 1024
   light: {fileID: 1338260078}
   MaxShadowDistance: 50
-  Bias: 0.003
+  Bias: 0.001
 --- !u!1 &1605501801
 GameObject:
   m_ObjectHideFlags: 0
@@ -1171,8 +1171,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 5
-  far clip plane: 15
+  near clip plane: 13.47
+  far clip plane: 88.1
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -1198,13 +1198,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1669638906}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 9.59, y: 2.51, z: 10.13}
+  m_LocalRotation: {x: 0.23821488, y: -0.37615052, z: 0.10070977, w: 0.88973147}
+  m_LocalPosition: {x: 14.33, y: 14.14, z: -13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 29.977001, y: -45.834003, z: 0}
 --- !u!114 &1669638910
 MonoBehaviour:
   m_ObjectHideFlags: 0

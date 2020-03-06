@@ -147,17 +147,6 @@ namespace SarRP.Renderer
 
         void DrawShadowCasters(ScriptableRenderContext context, RenderingData renderingData, ShadowMapData shadowMapData, int pass)
         {
-            /*FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-            SortingSettings sortingSettings = new SortingSettings(renderingData.camera);
-            sortingSettings.criteria = SortingCriteria.CommonOpaque;
-            DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId("ForwardLit"), sortingSettings)
-            {
-                enableDynamicBatching = true,
-                overrideMaterial = shadowMapMat,
-                overrideMaterialPassIndex = 0,
-            };
-            RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);*/
             var cmd = CommandBufferPool.Get();
             cmd.SetGlobalMatrix("_LightViewProjection", shadowMapData.world2Light);
             foreach (var renderer in GameObject.FindObjectsOfType<MeshRenderer>())
