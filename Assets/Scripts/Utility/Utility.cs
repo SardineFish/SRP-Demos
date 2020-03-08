@@ -64,7 +64,53 @@ public static class Utility
 
     public static IEnumerable<U> Map<T, U>(this IEnumerable<T> collection, Func<T, U> callback) => collection.Select(callback);
 
+    public static TResult MinOf<T, TCompare, TResult>(this IEnumerable<T> collection, Func<T, TCompare> comparerSelector, Func<T, TResult> resultSelector)
+        where TCompare: IComparable
+    {
+        bool hasFirstValue = false;
+        var minValue = default(TCompare);
+        TResult result = default(TResult);
+        foreach(var element in collection)
+        {
+            var value = comparerSelector(element);
+            if(!hasFirstValue)
+            {
+                minValue = value;
+                result = resultSelector(element);
+                hasFirstValue = true;
+            }
+            else if(minValue.CompareTo(value) > 0)
+            {
+                minValue = value;
+                result = resultSelector(element);
+            }
+        }
+        return result;
+    }
 
+    public static TResult MaxOf<T, TCompare, TResult>(this IEnumerable<T> collection, Func<T, TCompare> comparerSelector, Func<T, TResult> resultSelector)
+        where TCompare : IComparable
+    {
+        bool hasFirstValue = false;
+        var minValue = default(TCompare);
+        TResult result = default(TResult);
+        foreach (var element in collection)
+        {
+            var value = comparerSelector(element);
+            if (!hasFirstValue)
+            {
+                minValue = value;
+                result = resultSelector(element);
+                hasFirstValue = true;
+            }
+            else if (minValue.CompareTo(value) < 0)
+            {
+                minValue = value;
+                result = resultSelector(element);
+            }
+        }
+        return result;
+    }
 
     public static IEnumerable<T> NotNull<T>(this IEnumerable<T> source)
     {

@@ -15,6 +15,8 @@ Shader "SarRP/ForwardDefault" {
         Pass {
             Tags {"LightMode" = "ForwardLit"}
 
+            Cull Back
+
             HLSLPROGRAM
 
 			#include "UnityCG.cginc"
@@ -69,6 +71,7 @@ Shader "SarRP/ForwardDefault" {
                 //return shadow(i.worldPos);
                 //return  shadowAt(i) ;
                 float3 light = shadowAt(i) * lightColor;// * atten;
+                //return float4(normal, 1);
 
 				float3 diffuseTerm = PI * diffuseLambert(albedo.rgb) * light * nl + ambient;
 				float3 color = diffuseTerm;

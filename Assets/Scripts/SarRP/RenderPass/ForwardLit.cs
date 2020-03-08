@@ -74,6 +74,7 @@ namespace SarRP.Renderer
                     cmd.SetGlobalFloat("_ShadowBias", shadowData.bias);
                     cmd.SetGlobalInt("_ShadowType", (int)shadowData.ShadowType);
                     cmd.SetGlobalVector("_ShadowParameters", shadowData.ShadowParameters);
+                    cmd.SetGlobalMatrix("_ShadowPostTransform", shadowData.postTransform);
                 }
                 else
                 {

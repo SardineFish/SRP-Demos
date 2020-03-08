@@ -20,6 +20,7 @@ namespace SarRP.Renderer
     {
         const int PassSimple = 0;
         const int PassPSM = 1;
+        const int PassTSM = 2;
         public Dictionary<Light, ShadowMapData> LightMaps = new Dictionary<Light, ShadowMapData>();
         Material shadowMapMat;
         public ShadowPassRenderer(ShadowPass asset) : base(asset)
@@ -46,12 +47,16 @@ namespace SarRP.Renderer
                     var hasData = false;
                     switch (shadowSettings.Algorithms)
                     {
-                        case ShadowAlgorithms.Simple:
-                            data = SimpleShadowMap(context, renderingData, shadowSettings, i);
+                        case ShadowAlgorithms.Standard:
+                            data = StandardShadowMap(context, renderingData, shadowSettings, i);
                             hasData = true;
                             break;
                         case ShadowAlgorithms.PSM:
                             data = PSMShadowMap(context, renderingData, shadowSettings, i);
+                            hasData = true;
+                            break;
+                        case ShadowAlgorithms.TSM:
+                            data = TSMShadowMap(context, renderingData, shadowSettings, i);
                             hasData = true;
                             break;
                     }
@@ -64,7 +69,7 @@ namespace SarRP.Renderer
             }
         }
 
-        ShadowMapData SimpleShadowMap(ScriptableRenderContext context, RenderingData renderingData, ShadowSettings settings, int lightIndex)
+        ShadowMapData StandardShadowMap(ScriptableRenderContext context, RenderingData renderingData, ShadowSettings settings, int lightIndex)
         {
             var cmd = CommandBufferPool.Get();
             cmd.Clear();
@@ -81,7 +86,7 @@ namespace SarRP.Renderer
             {
                 shadowMapIdentifier = depthBuf,
                 bias = settings.Bias,
-                ShadowType = ShadowAlgorithms.Simple,
+                ShadowType = ShadowAlgorithms.Standard,
             };
 
 
@@ -92,7 +97,7 @@ namespace SarRP.Renderer
             //Debug.DrawLine(bounds.min, bounds.max);
             cmd.SetViewProjectionMatrices(view, projection);
             shadowMapData.world2Light = projection * view;
-            cmd.SetGlobalDepthBias(1, 1);
+            cmd.SetGlobalDepthBias(settings.DepthBias, settings.NormalBias);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -139,6 +144,56 @@ namespace SarRP.Renderer
             cmd.Clear();
 
             DrawShadowCasters(context, renderingData, shadowMapData, PassPSM);
+
+            CommandBufferPool.Release(cmd);
+
+            return shadowMapData;
+        }
+
+        ShadowMapData TSMShadowMap(ScriptableRenderContext context, RenderingData renderingData, ShadowSettings settings, int lightIndex)
+        {
+            var camera = GameObject.Find("Main Camera").GetComponent<Camera>();
+            var (view, projection) = Utils.GetShadowViewProjection(settings, renderingData, lightIndex);
+
+            var cmd = CommandBufferPool.Get();
+            cmd.Clear();
+            var depthBuf = IdentifierPool.Get();
+
+            cmd.GetTemporaryRT(depthBuf, settings.Resolution, settings.Resolution, 32, FilterMode.Point, RenderTextureFormat.Depth);
+
+            RenderTargetBinding binding = new RenderTargetBinding();
+            binding.depthRenderTarget = depthBuf;
+            cmd.SetRenderTarget(depthBuf);
+            cmd.ClearRenderTarget(true, true, Color.black);
+
+            ShadowMapData shadowMapData = new ShadowMapData()
+            {
+                shadowMapIdentifier = depthBuf,
+                bias = settings.Bias,
+                ShadowType = ShadowAlgorithms.TSM,
+                world2Light = GL.GetGPUProjectionMatrix(projection, true) * view,
+            };
+
+            var trapezoidalTransfrom = Utils.TSMTransform(camera, shadowMapData.world2Light, settings);
+            shadowMapData.postTransform = trapezoidalTransfrom;
+
+            
+            cmd.SetViewProjectionMatrices(view, projection);
+            cmd.SetGlobalDepthBias(settings.DepthBias, settings.NormalBias);
+            cmd.SetGlobalMatrix("_ShadowPostTransform", trapezoidalTransfrom);
+            cmd.SetGlobalFloat("_SlopeDepthBias", -settings.NormalBias);
+            cmd.SetGlobalFloat("_DepthBias", -Mathf.Pow(2, settings.DepthBias));
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+
+            DrawShadowCasters(context, renderingData, shadowMapData, PassTSM);
+
+            cmd.SetViewProjectionMatrices(renderingData.camera.worldToCameraMatrix, renderingData.camera.projectionMatrix);
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
             CommandBufferPool.Release(cmd);
 

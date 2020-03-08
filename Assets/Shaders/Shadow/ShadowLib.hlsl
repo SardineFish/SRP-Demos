@@ -7,7 +7,7 @@ Texture2D _ShadowMap;
 SamplerState tex_point_clamp_sampler;
 int _ShadowType;
 float4 _ShadowParameters;
-
+float4x4 _ShadowPostTransform;
 
 float shadowAt(v2f i)
 {
@@ -35,15 +35,34 @@ float shadowAt(v2f i)
         #if UNITY_UV_STARTS_AT_TOP
             p.y *= -1;
         #endif
+        // Handle z reverse
         if(_ShadowParameters.x > 0)
             p.z = 1 - p.z;
-        //return p.z;
+            
         float2 uv = p.xy * .5 + .5;
 	    float2 clip = step(0, uv.xy) * (1 - step(1, uv.xy));
         float shadowDepth = _ShadowMap.Sample(tex_point_clamp_sampler, uv) * clip.x * clip.y;
         if(shadowDepth <= 0)
             shadowDepth = -100;
         return step(shadowDepth, p.z + _ShadowBias);
+    }
+    else if (_ShadowType == 2)
+    {
+	    float4 p = float4(i.worldPos.xyz, 1);
+        float4 pClip = mul(_WorldToLight, p);
+        pClip /= p.w;
+        pClip.w = 1;
+
+        p = mul(_ShadowPostTransform, pClip);
+        p /= p.w;
+        p.y *= -1;
+        
+        float2 uv = p.xy * .5 + .5;
+	    float2 clip = step(0, uv.xy) * (1 - step(1, uv.xy));
+        float shadowDepth = _ShadowMap.Sample(tex_point_clamp_sampler, uv) * clip.x * clip.y;
+	    if(shadowDepth <= 0)
+	    	shadowDepth = -100;
+        return step(shadowDepth, pClip.z + _ShadowBias);
     }
 
     //return float4(shadowDepth, p.z, 0, 1);
