@@ -12,7 +12,7 @@ namespace SarRP.Renderer
     public class DebugPass : RenderPassAsset
     {
         public Material material;
-        public string name = "Debug Pass";
+        public string Name = "Debug Pass";
 
         public override RenderPass CreateRenderPass()
         {
@@ -30,7 +30,7 @@ namespace SarRP.Renderer
 
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get(asset.name);
+            var cmd = CommandBufferPool.Get(asset.Name);
             cmd.DrawMesh(fullscreenMesh, Utility.ProjectionToWorldMatrix(renderingData.camera), asset.material);
             context.ExecuteCommandBuffer(cmd);
 
