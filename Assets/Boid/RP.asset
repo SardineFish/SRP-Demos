@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 459df926b7883ff4aa2dfb018073c017, type: 3}
+  m_Name: RP
+  m_EditorClassIdentifier: 
+  m_MaxShadowDistance: 0
+  m_RenderPasses:
+  - {fileID: 11400000, guid: ca2cc8beca73c5a49b8d16637c3fa196, type: 2}
+  - {fileID: 11400000, guid: a980c6c7738c5314380b23bf427ade96, type: 2}

@@ -79,7 +79,7 @@ namespace SarRP.Renderer
                 else
                 {
                     cmd.SetGlobalMatrix("_WorldToLight", Matrix4x4.identity);
-                    cmd.SetGlobalTexture("_ShadowMap", BuiltinRenderTextureType.None);
+                    cmd.SetGlobalTexture("_ShadowMap", renderingData.DefaultShadowMap);
                 }
 
                 if (mainLight.light.type == LightType.Directional)
