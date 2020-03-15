@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using SarRP.Renderer;
+using System.Linq;
 
 namespace SarRP
 {
@@ -10,6 +11,7 @@ namespace SarRP
     {
         SardineRenderPipelineAsset settings { get; set; }
         List<RenderPass> RenderPassQueue = new List<RenderPass>();
+        List<UserPass> globalUserPasses = new List<UserPass>();
         int ColorTarget;
         int DepthTarget;
         bool rtCreated = false;
@@ -22,6 +24,7 @@ namespace SarRP
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             BeginFrameRendering(context, cameras);
+
             foreach (var camera in cameras)
             {
                 BeginCameraRendering(context, camera);
@@ -86,6 +89,23 @@ namespace SarRP
                 pass.Render(context, ref renderingData);
             }
 
+            // Draw global user passes
+            foreach(var pass in globalUserPasses)
+            {
+                pass.Setup(context, ref renderingData);
+                pass.Render(context, ref renderingData);
+            }
+
+            // Draw user passes
+            var userPasses = camera.GetComponents<UserPass>();
+            foreach(var pass in userPasses)
+            {
+                if (pass.Global)
+                    continue;
+                pass.Setup(context, ref renderingData);
+                pass.Render(context, ref renderingData);
+            }
+
             cmd.Blit(ColorTarget, BuiltinRenderTextureType.CameraTarget);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -98,6 +118,11 @@ namespace SarRP
 
             foreach (var pass in RenderPassQueue)
                 pass.Cleanup(context, ref renderingData);
+            foreach (var pass in globalUserPasses)
+                pass.Cleanup(context, ref renderingData);
+            foreach (var pass in userPasses)
+                pass.Cleanup(context, ref renderingData);
+
 
             this.Cleanup(context, ref renderingData);
 

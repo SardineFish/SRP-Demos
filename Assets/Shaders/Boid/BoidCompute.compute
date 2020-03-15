@@ -1,0 +1,195 @@
+#pragma kernel Boid
+#pragma enable_d3d11_debug_symbols
+
+struct EntityData
+{
+    float3 position;
+    float3 velocity;
+    float3 up;
+    float4x4 rotation;
+};
+
+uint TotalSize;
+
+#define REDUCE_THREADS 128
+RWStructuredBuffer<EntityData> ReductionBuffer;
+groupshared EntityData reductionData[REDUCE_THREADS];
+
+[numthreads(REDUCE_THREADS, 1, 1)]
+void Reduce (uint3 id : SV_DISPATCHTHREADID, uint3 groupID : SV_GROUPID, uint groupIndex : SV_GROUPINDEX)
+{
+    if(id.x < TotalSize)
+        reductionData[groupIndex] = ReductionBuffer[id.x];
+    else 
+    {
+        reductionData[groupIndex].position = 0;
+        reductionData[groupIndex].velocity = 0;
+    }
+    GroupMemoryBarrierWithGroupSync();
+    for(int stride = 1; stride < REDUCE_THREADS; stride *= 2)
+    {
+        int index = groupIndex * 2 * stride;
+        if(index < REDUCE_THREADS)
+        {
+            reductionData[index] = reductionData[index + stride];
+        }
+        GroupMemoryBarrierWithGroupSync();
+    }
+    if(groupIndex == 0)
+        ReductionBuffer[groupID.x] = reductionData[0];
+}
+
+float4x4 fromTo(float3 from, float3 to)
+{
+    float3 v = cross(from, to);
+    float e = dot(from, to);
+    float h = 1 / (1 + e);
+    float4x4 mat = {
+        e+h*v.x*v.x,    h*v.x*v.y-v.z,  h*v.x*v.z+v.y,  0,
+        h*v.x*v.y+v.z,  e+h*v.y*v.y,      h*v.y*v.z-v.x,  0,
+        h*v.x*v.z-v.y,  h*v.y*v.z+v.x,  e+h*v.z*v.z,    0,
+        0,              0,              0,              1
+    };
+    return mat;
+}
+float4x4 identity()
+{
+    float4x4 mat = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    return mat;
+}
+float4x4 translate(float3 offset)
+{
+    float4x4 mat = {
+        1, 0, 0, offset.x,
+        0, 1, 0, offset.y,
+        0, 0, 1, offset.z,
+        0, 0, 0, 1
+    };
+    return mat;
+}
+float4 quaternion(float3 axis, float angle)
+{
+	axis = normalize(axis);
+	float halfAngle = angle / 2;
+	return normalize(float4(axis.x * sin(halfAngle), axis.y * sin(halfAngle), axis.z * sin(halfAngle), cos(halfAngle)));
+}
+float4 reverseQuaternion(float4 q){
+	return normalize(float4(-q.x, -q.y, -q.z, q.w));
+}
+float4 quaternionMul(float4 q1, float4 q2){
+	return float4(
+		(q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y),
+		(q1.w * q2.y) - (q1.x * q2.z) + (q1.y * q2.w) + (q1.z * q2.x),
+		(q1.w * q2.z) + (q1.x * q2.y) - (q1.y * q2.x) + (q1.z * q2.w),
+		(q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z));
+}
+float3 rotateVector(float3 axis, float3 v, float angle){
+	float4 q = quaternion(axis, angle);
+	float4 v4 = float4(v.x, v.y, v.z, 0);
+	float4 tmp = quaternionMul(q, v4);
+	return normalize(quaternionMul(tmp, reverseQuaternion(q)).xyz);
+}
+
+float SensoryRadius;
+float SeperationFactor;
+float AlignmentFactor;
+float CohesionFactor;
+float DeltaTime;
+float2 SpeedLimit;
+float3 AngularSpeedLimit;
+float3 AngularAccelerationLimit;
+float3 AccelerationLimit;
+StructuredBuffer<EntityData> InputBuffer;
+RWStructuredBuffer<EntityData> OutputBuffer;
+
+[numthreads(8, 1, 1)]
+void Boid(uint3 id : SV_DISPATCHTHREADID)
+{
+    if(id.x >= TotalSize)
+        return;
+
+    EntityData self = InputBuffer[id.x];
+    float3 forward = normalize(self.velocity);
+    float3 up = normalize(self.up);
+    float3 right = normalize(cross(up, forward));
+    //up = cross(right, forward);
+
+    float3 alignment = 0;
+    float3 seperation = 0;
+    float3 cohesion = 0;
+    int count = 0;
+        
+    for(int i = 0; i < TotalSize; i++)
+    {
+        EntityData target = InputBuffer[i];
+        float dis = distance(self.position, target.position);
+
+        if(i != id.x && dis <= SensoryRadius)
+        {
+            alignment += target.velocity;
+            seperation += (self.position - target.position) / dis;
+            cohesion += target.position;
+            count++;
+        }
+    }
+
+    if(count > 0)
+    {
+        alignment = alignment / count;
+        seperation = normalize(seperation / count);
+        cohesion = normalize(cohesion / count - self.position);
+        float3 targetV = (alignment * AlignmentFactor + seperation * SeperationFactor + cohesion * CohesionFactor) / (AlignmentFactor + SeperationFactor + CohesionFactor);
+        //targetV = float3(1,0,0);
+        if(1 - dot(targetV, forward) > 0.0001)
+        {
+            float3 targetRight = normalize(cross(targetV, forward));
+            float3 steerV = cross(right, targetRight);
+            float steer = acos(dot(right, targetRight)) * sign(dot(steerV, forward));
+            steer = clamp(steer, -AngularSpeedLimit.x, AngularSpeedLimit.x);
+            float3 rotatedX = rotateVector(forward, right, steer);
+
+            float pitch = -acos(dot(forward, normalize(targetV)));
+            pitch = clamp(pitch, -AngularSpeedLimit.y, AngularSpeedLimit.y);
+
+            float steerProgress = 1 - abs(steer) / AngularSpeedLimit.x;
+            pitch = pitch * pow(steerProgress, 2);
+
+            float3 rotatedZ = rotateVector(rotatedX, forward, pitch);
+
+
+
+            float acceleration = length(alignment) - length(self.velocity);
+            acceleration = clamp(acceleration, -AngularSpeedLimit.z, AngularSpeedLimit.z);
+            float speed = length(self.velocity) + acceleration;
+            speed = clamp(speed, SpeedLimit.x, SpeedLimit.y);
+            self.velocity = rotatedZ * speed;
+
+            forward = rotatedZ;
+            right = rotatedX;
+            up = cross(rotatedZ, rotatedX);
+
+            //self.velocity = targetV;
+            // self.position += forward  * DeltaTime;
+        }
+        self.position += self.velocity * DeltaTime;
+    }
+    //else
+        //self.position += self.velocity * DeltaTime;
+    //self.rotation = fromTo(float3(0, 1, 0), normalize(self.velocity));
+
+    
+    float4x4 m;
+    m[0] = float4(right.xyz, 0);
+    m[1] = float4(up.xyz, 0);
+    m[2] = float4(forward.xyz, 0);
+    m[3] = float4(0, 0, 0, 1);
+    self.rotation = transpose(m);
+    self.up = up;
+
+    OutputBuffer[id.x] = self;
+}
