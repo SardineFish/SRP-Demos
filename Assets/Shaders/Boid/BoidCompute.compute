@@ -1,5 +1,5 @@
 #pragma kernel Boid
-#pragma enable_d3d11_debug_symbols
+//#pragma enable_d3d11_debug_symbols
 
 struct EntityData
 {
@@ -101,13 +101,14 @@ float AlignmentFactor;
 float CohesionFactor;
 float DeltaTime;
 float2 SpeedLimit;
+float AccelerationLimit;
 float3 AngularSpeedLimit;
-float3 AngularAccelerationLimit;
-float3 AccelerationLimit;
+float4 Target;
+
 StructuredBuffer<EntityData> InputBuffer;
 RWStructuredBuffer<EntityData> OutputBuffer;
 
-[numthreads(8, 1, 1)]
+[numthreads(1024, 1, 1)]
 void Boid(uint3 id : SV_DISPATCHTHREADID)
 {
     if(id.x >= TotalSize)
@@ -129,7 +130,7 @@ void Boid(uint3 id : SV_DISPATCHTHREADID)
         EntityData target = InputBuffer[i];
         float dis = distance(self.position, target.position);
 
-        if(i != id.x && dis <= SensoryRadius)
+        if(i != id.x && dis <= SensoryRadius && dot(normalize(target.position - self.position), forward) > 0)
         {
             alignment += target.velocity;
             seperation += (self.position - target.position) / dis;
@@ -143,28 +144,31 @@ void Boid(uint3 id : SV_DISPATCHTHREADID)
         alignment = alignment / count;
         seperation = normalize(seperation / count);
         cohesion = normalize(cohesion / count - self.position);
-        float3 targetV = (alignment * AlignmentFactor + seperation * SeperationFactor + cohesion * CohesionFactor) / (AlignmentFactor + SeperationFactor + CohesionFactor);
-        //targetV = float3(1,0,0);
-        if(1 - dot(targetV, forward) > 0.0001)
+        float3 targetDir = (alignment * AlignmentFactor + seperation * SeperationFactor + cohesion * CohesionFactor) / (AlignmentFactor + SeperationFactor + CohesionFactor);
+        targetDir = targetDir * (1 - Target.w) + (Target.xyz - self.position) * Target.w;
+        //targetDir = float3(1,0,0);
+        if(1 - dot(normalize(targetDir), forward) > 0.0001)
         {
-            float3 targetRight = normalize(cross(targetV, forward));
+            float3 targetRight = normalize(cross(targetDir, forward));
             float3 steerV = cross(right, targetRight);
             float steer = acos(dot(right, targetRight)) * sign(dot(steerV, forward));
             steer = clamp(steer, -AngularSpeedLimit.x, AngularSpeedLimit.x);
             float3 rotatedX = rotateVector(forward, right, steer);
 
-            float pitch = -acos(dot(forward, normalize(targetV)));
+            float pitch = -acos(dot(forward, normalize(targetDir)));
             pitch = clamp(pitch, -AngularSpeedLimit.y, AngularSpeedLimit.y);
 
             float steerProgress = 1 - abs(steer) / AngularSpeedLimit.x;
-            pitch = pitch * pow(steerProgress, 2);
+            pitch = pitch * pow(steerProgress, 1);
 
             float3 rotatedZ = rotateVector(rotatedX, forward, pitch);
 
-
-
-            float acceleration = length(alignment) - length(self.velocity);
-            acceleration = clamp(acceleration, -AngularSpeedLimit.z, AngularSpeedLimit.z);
+            float acceleration = 0;
+            if(dot(normalize(targetDir), forward) > .8)
+                acceleration = AccelerationLimit;
+            else if(dot(normalize(targetDir), forward) < -.5)
+                acceleration = -AccelerationLimit;
+            acceleration = clamp(acceleration, -AccelerationLimit, AccelerationLimit);
             float speed = length(self.velocity) + acceleration;
             speed = clamp(speed, SpeedLimit.x, SpeedLimit.y);
             self.velocity = rotatedZ * speed;
@@ -173,13 +177,13 @@ void Boid(uint3 id : SV_DISPATCHTHREADID)
             right = rotatedX;
             up = cross(rotatedZ, rotatedX);
 
-            //self.velocity = targetV;
+            //self.velocity = targetDir;
             // self.position += forward  * DeltaTime;
         }
         self.position += self.velocity * DeltaTime;
     }
-    //else
-        //self.position += self.velocity * DeltaTime;
+    else
+        self.position += self.velocity * DeltaTime;
     //self.rotation = fromTo(float3(0, 1, 0), normalize(self.velocity));
 
     
