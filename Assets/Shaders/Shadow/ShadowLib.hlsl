@@ -9,7 +9,7 @@ int _ShadowType;
 float4 _ShadowParameters;
 float4x4 _ShadowPostTransform;
 
-float shadowAt(v2f i)
+float shadowAt(v2f_legacy i)
 {
     if(_ShadowType == 0)
     {

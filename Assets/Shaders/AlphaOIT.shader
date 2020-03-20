@@ -33,7 +33,7 @@ Shader "SarRP/Transparent" {
         float _F0;
         float _FresnelExponent;
 
-        inline float4 renderFragment(v2f i)
+        inline float4 renderFragment(v2f_legacy i)
         {
             float4 packNormal = tex2D(_Normal, i.uv); 
 			float3 normal = UnpackNormal(packNormal);
@@ -59,7 +59,7 @@ Shader "SarRP/Transparent" {
             return color;
         }
 
-        float4 frag(v2f i) : SV_TARGET
+        float4 frag(v2f_legacy i) : SV_TARGET
         {
             
             return renderFragment(i);
@@ -71,7 +71,7 @@ Shader "SarRP/Transparent" {
             float depth : SV_TARGET1;
         };
 
-        DepthPeelingOutput depthPeelingFirstPass(v2f i) : SV_TARGET
+        DepthPeelingOutput depthPeelingFirstPass(v2f_legacy i) : SV_TARGET
         {
             DepthPeelingOutput o;
             o.color = renderFragment(i);
@@ -81,7 +81,7 @@ Shader "SarRP/Transparent" {
 
         sampler2D _MaxDepthTex;
 
-        DepthPeelingOutput depthPeelingPass(v2f i) :SV_TARGET
+        DepthPeelingOutput depthPeelingPass(v2f_legacy i) :SV_TARGET
         {
             i.screenPos /= i.screenPos.w;
             float maxDepth = tex2D(_MaxDepthTex, i.screenPos.xy).r;
@@ -97,7 +97,7 @@ Shader "SarRP/Transparent" {
         }
 
         sampler2D _DepthTex;
-        float4 finalPass(v2f i , out float depthOut : SV_DEPTH) : SV_TARGET
+        float4 finalPass(v2f_legacy i , out float depthOut : SV_DEPTH) : SV_TARGET
         {
             float4 color = tex2D(_MainTex, i.uv);
             float depth = tex2D(_DepthTex, i.uv);
@@ -118,7 +118,7 @@ Shader "SarRP/Transparent" {
 
             HLSLPROGRAM
             
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment frag
 
             ENDHLSL
@@ -136,7 +136,7 @@ Shader "SarRP/Transparent" {
 
             HLSLPROGRAM
             
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment frag
 
             ENDHLSL
@@ -152,7 +152,7 @@ Shader "SarRP/Transparent" {
 
             HLSLPROGRAM
 
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment depthPeelingFirstPass
 
             ENDHLSL
@@ -168,7 +168,7 @@ Shader "SarRP/Transparent" {
 
             HLSLPROGRAM
 
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment depthPeelingPass
 
             ENDHLSL
@@ -184,7 +184,7 @@ Shader "SarRP/Transparent" {
 
             HLSLPROGRAM
 
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment finalPass
 
             ENDHLSL

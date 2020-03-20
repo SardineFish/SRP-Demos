@@ -29,7 +29,7 @@ Shader "SarRP/Boid/Instancing" {
         float3 up;
         float4x4 rotation;
     };
-    struct v2f
+    struct v2f_legacy
     {
         float4 pos : SV_POSITION;
         float3 color : TEXCOORD0;
@@ -44,10 +44,10 @@ Shader "SarRP/Boid/Instancing" {
     float4 _AmbientLight;
     float3 _WorldCameraPos;
 
-    v2f vert(appdata_full i, uint instanceID : SV_INSTANCEID)
+    v2f_legacy vert(appdata_full i, uint instanceID : SV_INSTANCEID)
     {
         EntityData data = boidBuffer[instanceID];
-        v2f o;
+        v2f_legacy o;
         float4 p = float4(i.vertex.xyz, 1);
         p = mul(data.rotation, p);
         p.xyz += data.position.xyz;
@@ -68,7 +68,7 @@ Shader "SarRP/Boid/Instancing" {
     	return;
     }
 
-    float4 frag(v2f i) : SV_TARGET
+    float4 frag(v2f_legacy i) : SV_TARGET
     {
         float3 lightDir;
         float3 lightColor;

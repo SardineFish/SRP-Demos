@@ -12,7 +12,16 @@ struct v2f_light
 	float2 uv : TEXCOORD0;
 };
 
-struct v2f
+struct v2f_default
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+	float3 normal : TEXCOORD1;
+	float3 tangent : TEXCOORD2;
+	float3 worldPos : TEXCOORD3;
+};
+
+struct v2f_legacy
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD0;
@@ -39,9 +48,9 @@ v2f_light light_vert(appdata_full i)
 	return o;
 }
 
-v2f default_vert(appdata_full i)
+v2f_legacy vert_legacy(appdata_full i)
 {
-    v2f o;
+    v2f_legacy o;
 	o.pos = UnityObjectToClipPos(i.vertex);
     o.uv = i.texcoord;
     o.worldPos = mul(unity_ObjectToWorld, i.vertex);
@@ -55,6 +64,7 @@ v2f default_vert(appdata_full i)
 	o.clipPos = o.pos;
     return o;
 }
+
 
 v2f_ray vert_ray(appdata_full i)
 {
@@ -70,7 +80,7 @@ v2f_ray vert_ray(appdata_full i)
 	return o;
 }
 
-inline float3 tangentSpaceToWorld(v2f i, float3 v)
+inline float3 tangentSpaceToWorld(v2f_legacy i, float3 v)
 {
     return float3(dot(v, i.t2w0.xyz), dot(v, i.t2w1.xyz), dot(v, i.t2w2.xyz));
 }

@@ -16,9 +16,9 @@ Shader "SarRP/Test/NDCVisualisation" {
     float4x4 _LightViewProjection;
     int _EnableLightTransform;
 
-    v2f vert(appdata_full i)
+    v2f_legacy vert(appdata_full i)
     {
-        v2f o;
+        v2f_legacy o;
 	    float3 p = mul(unity_ObjectToWorld, i.vertex);
         o.pos = mul(_CameraViewProjection, float4(p.xyz, 1));
 	    o.pos /= o.pos.w;
@@ -46,7 +46,7 @@ Shader "SarRP/Test/NDCVisualisation" {
 
     float4 _AmbientLight;
 
-    float4 frag(v2f i) : SV_TARGET
+    float4 frag(v2f_legacy i) : SV_TARGET
     {
         float4 albedo = tex2D(_MainTex, i.uv) * _Color;
 		float3 ambient = _AmbientLight.rgb * albedo.rgb;

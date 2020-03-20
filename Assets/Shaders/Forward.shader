@@ -23,7 +23,7 @@ Shader "SarRP/ForwardDefault" {
             #include "./Lib.hlsl"
             #include "./Shadow/ShadowLib.hlsl" 
 
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment frag
 
             #pragma enable_d3d11_debug_symbols
@@ -43,7 +43,7 @@ Shader "SarRP/ForwardDefault" {
                 return albedo / PI;
             }
 
-			float4 frag(v2f i):SV_TARGET{
+			float4 frag(v2f_legacy i):SV_TARGET{
 				
 				float4 albedo = tex2D(_MainTex, i.uv) * _Color;
 				float3 ambient = _AmbientLight.rgb * albedo.rgb;

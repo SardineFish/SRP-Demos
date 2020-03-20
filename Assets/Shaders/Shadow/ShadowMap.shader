@@ -26,10 +26,10 @@ Shader "SarRP/Shadow/ShadowMap" {
 
             HLSLPROGRAM
 
-            #pragma vertex default_vert
+            #pragma vertex vert_legacy
             #pragma fragment frag
 
-            float frag(v2f i): SV_TARGET
+            float frag(v2f_legacy i): SV_TARGET
             {
                 return 0;//i.pos.z;
             }
