@@ -15,7 +15,7 @@ public class ShadowSettings : MonoBehaviour
     public ShadowAlgorithms Algorithms = ShadowAlgorithms.Standard;
     [Delayed]
     public int Resolution = 1024;
-    public Light light;
+    public new Light light;
     public float MaxShadowDistance = 50;
     public float Bias = 0.01f;
     [Range(0, 23)]
@@ -23,10 +23,15 @@ public class ShadowSettings : MonoBehaviour
     [Range(0, 10)]
     public float NormalBias = 1;
     public float FocusDistance = 20;
+    public bool Debug = false;
 
     private void Awake()
     {
-        this.light = GetComponent<Light>();
+        light = GetComponent<Light>();
+    }
+    private void Reset()
+    {
+        light = GetComponent<Light>();
     }
     private void Update()
     {

@@ -65,6 +65,17 @@ v2f_legacy vert_legacy(appdata_full i)
     return o;
 }
 
+v2f_default vert_default(appdata_full i)
+{
+	v2f_default o;
+	o.pos = UnityObjectToClipPos(i.vertex);
+    o.uv = i.texcoord;
+	o.normal = UnityObjectToWorldNormal(i.normal);
+	o.tangent = UnityObjectToWorldDir(i.tangent.xyz);
+    o.worldPos = mul(unity_ObjectToWorld, i.vertex);
+	return o;
+}
+
 
 v2f_ray vert_ray(appdata_full i)
 {

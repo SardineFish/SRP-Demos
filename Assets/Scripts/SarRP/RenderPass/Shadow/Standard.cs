@@ -31,11 +31,9 @@ namespace SarRP.Renderer
             };
 
 
-            //var view = Matrix4x4.Scale(new Vector3(1, 1, -1)) * settings.light.transform.worldToLocalMatrix;
+
             var (view, projection) = GetShadowViewProjection(settings, renderingData, lightIndex);
-            //renderingData.cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, 0, 1, new Vector3(1, 0, 0), settings.Resolution, 0.1f, out var view, out var projection, out var shadowSplitData);
-            //renderingData.cullResults.GetShadowCasterBounds(lightIndex, out var bounds);
-            //Debug.DrawLine(bounds.min, bounds.max);
+
             cmd.SetViewProjectionMatrices(view, projection);
             shadowMapData.world2Light = projection * view;
             cmd.SetGlobalDepthBias(settings.DepthBias, settings.NormalBias);
@@ -78,7 +76,7 @@ namespace SarRP.Renderer
                         casterBoundVerts[i++] = bounds.center + Vector3.Scale(bounds.extents, new Vector3(x, y, z));
 
 
-            var debug = camera.name == "Main Camera" && true;
+            var debug = camera.name == "Main Camera" && settings.Debug;
 
             if (settings.light.type == LightType.Point)
             {
@@ -96,7 +94,17 @@ namespace SarRP.Renderer
                 return (Matrix4x4.Scale(new Vector3(1, 1, -1)) * rotatedView, Matrix4x4.Frustum(frustumCaster));
 
             }
-            else
+            else if (settings.light.type == LightType.Spot)
+            {
+                Matrix4x4 lightView = settings.light.transform.worldToLocalMatrix;
+                var frustumCamera = BestfitFrustum(false, lightView, p0, p1, p2, p3, p4);
+                var frustumCaster = BestfitFrustum(false, lightView, casterBoundVerts);
+                var near = frustumCaster.zNear;
+                var far = Mathf.Min(frustumCaster.zFar, frustumCamera.zFar, settings.light.range);
+
+                return (view, Matrix4x4.Perspective(settings.light.spotAngle, 1, near, far));
+            }
+            else if (settings.light.type == LightType.Directional)
             {
                 var frustumCamera = BestfitFrustum(true, settings.light.transform.worldToLocalMatrix, p0, p1, p2, p3, p4);
                 var frustumCaster = BestfitFrustum(true, settings.light.transform.worldToLocalMatrix, casterBoundVerts);
@@ -108,7 +116,7 @@ namespace SarRP.Renderer
                 var zNear = frustumCaster.zNear;
                 var zFar = Mathf.Min(frustumCaster.zFar, frustumCamera.zFar);
 
-                if (camera.name == "Main Camera")
+                if (debug)
                 {
                     var bound = new Bounds();
                     bound.min = new Vector3(left, bottom, zNear);
@@ -129,6 +137,8 @@ namespace SarRP.Renderer
                 return (view, Matrix4x4.Ortho(left, right, bottom, top, zNear, zFar));
 
             }
+
+            return (Matrix4x4.identity, Matrix4x4.identity);
         }
 
         public static FrustumPlanes BestfitFrustum(bool orthographic, Matrix4x4 transform, params Vector3[] verts)

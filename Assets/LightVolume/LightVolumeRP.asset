@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: LightVolumeRP
   m_EditorClassIdentifier: 
   m_MaxShadowDistance: 0
-  m_RenderPasses: []
+  m_RenderPasses:
+  - {fileID: 11400000, guid: 314e5b301b6ec6d4f889f4535c6e3156, type: 2}
+  - {fileID: 11400000, guid: 6c80a85f3b372624ebcbb54f91d53fc7, type: 2}

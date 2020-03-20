@@ -1,4 +1,4 @@
-Shader "SarRP/LightVolume" {
+Shader "SarRP/LightVolume/VolumeMesh" {
     Properties {
 
     }
@@ -7,9 +7,17 @@ Shader "SarRP/LightVolume" {
 
     #include "../Lib.hlsl"
 
-    float frag(v2f_light i) : SV_TARGET
+    float intersectPlane(float4 plane, float3 origin, float3 dir, out bool intersect)
     {
-        return i.pos.z;
+        // t = -(O . P) / (D . P)
+        float d = dot(dir, plane.xyz);
+        intersect = d == 0;
+        return -dot(float4(origin.xyz, 1), plane) / d;
+    }
+
+    float frag(v2f_default i) : SV_TARGET
+    {
+        return i.worldPos.z;
     }
 
     ENDHLSL
@@ -26,8 +34,8 @@ Shader "SarRP/LightVolume" {
 
             HLSLPROGRAM
 
-            #pragma vertex light_vert
-            #pragma fragment 
+            #pragma vertex vert_default
+            #pragma fragment frag
 
             ENDHLSL
         }
@@ -40,6 +48,13 @@ Shader "SarRP/LightVolume" {
             ZWrite Off
             Blend One One
             BlendOp Sub
+
+            HLSLPROGRAM
+
+            #pragma vertex vert_default
+            #pragma fragment frag
+
+            ENDHLSL
         }
     }
 }
