@@ -1,7 +1,9 @@
+#ifndef SAR_RP_SHADER_LIB
+#define SAR_RP_SHADER_LIB
+
 #include "UnityCG.cginc"
 
-float4 _MainLightPosition;
-float4 _MainLightColor;
+
 float4x4 _ViewProjectionInverseMatrix;
 float3 _WorldCameraPos;
 
@@ -17,7 +19,7 @@ struct v2f_default
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD0;
 	float3 normal : TEXCOORD1;
-	float3 tangent : TEXCOORD2;
+	float4 tangent : TEXCOORD2;
 	float3 worldPos : TEXCOORD3;
 };
 
@@ -79,7 +81,8 @@ v2f_default vert_default(appdata_full i)
 	o.pos = UnityObjectToClipPos(i.vertex);
     o.uv = i.texcoord;
 	o.normal = UnityObjectToWorldNormal(i.normal);
-	o.tangent = UnityObjectToWorldDir(i.tangent.xyz);
+	o.tangent = float4(UnityObjectToWorldDir(i.tangent.xyz), i.tangent.w);
+	//o.binormal = cross(o.normal, o.tangent) * i.tangent.w;
     o.worldPos = mul(unity_ObjectToWorld, i.vertex);
 	return o;
 }
@@ -118,9 +121,17 @@ inline float3 fresnelFunc(float f0, float nv, float p) {
 	return f0 + (1 - f0) * pow(1 - nv, p);
 }
 
-void lightAt(float3 worldPos, out float3 lightDir, out float3 lightColor)
+float3 tangentSpaceToWorld(float3 normal, float4 tangent4, float3 v)
 {
-	lightDir = normalize(_MainLightPosition.xyz - worldPos * _MainLightPosition.w);
-	lightColor = _MainLightColor.rgb;
-	return;
+	float3 tangent = normalize(tangent4.xyz);
+	float3 binormal = cross(normal, tangent.xyz) * tangent4.w;
+	float3x3 mat = {
+		tangent.xyz,
+		binormal.xyz,
+		normal.xyz
+	};
+	mat = transpose(mat);
+	return mul(mat, v);
 }
+
+#endif

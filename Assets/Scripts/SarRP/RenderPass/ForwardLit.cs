@@ -23,7 +23,7 @@ namespace SarRP.Renderer
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SetupLights(context, ref renderingData);
+            SetupGlobalLight(context, ref renderingData);
         }
 
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -40,47 +40,86 @@ namespace SarRP.Renderer
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                SetupLights(context, ref renderingData);
+                SetupGlobalLight(context, ref renderingData);
 
-                FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-                SortingSettings sortingSettings = new SortingSettings(camera);
-                sortingSettings.criteria = SortingCriteria.CommonOpaque;
-                DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId("ForwardLit"), sortingSettings)
+                var mainLightIndex = GetMainLightIndex(ref renderingData);
+
+                for (var i = 0; i < renderingData.cullResults.visibleLights.Length; i++)
                 {
-                    mainLightIndex = GetMainLightIndex(ref renderingData),
-                    enableDynamicBatching = true
-                };
-                RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+                    SetupLight(context, renderingData, i);
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);
+                    FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+                    SortingSettings sortingSettings = new SortingSettings(camera);
+                    sortingSettings.criteria = SortingCriteria.CommonOpaque;
+                    var shaderTag = i == mainLightIndex
+                        ? new ShaderTagId("ForwardBase")
+                        : new ShaderTagId("ForwardAdd");
+                    DrawingSettings drawingSettings = new DrawingSettings(shaderTag, sortingSettings)
+                    {
+                        mainLightIndex = GetMainLightIndex(ref renderingData),
+                        enableDynamicBatching = true,
+                    };
+                    RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);
+                }
 
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        void SetupLight(ScriptableRenderContext context, RenderingData renderingData, int lightIndex)
+        {
+            var cmd = CommandBufferPool.Get();
+            var light = renderingData.cullResults.visibleLights[lightIndex];
+            if(light.lightType == LightType.Directional)
+            {
+                cmd.SetGlobalVector("_LightPosition", -light.light.transform.forward.ToVector4(0));
+                cmd.SetGlobalColor("_LightColor", light.finalColor);
+                cmd.SetGlobalVector("_LightDirection", -light.light.transform.forward);
+                cmd.SetGlobalFloat("_LightCosHalfAngle", -2);
+            }
+            else
+            {
+                cmd.SetGlobalVector("_LightPosition", light.light.transform.position.ToVector4(1));
+                cmd.SetGlobalColor("_LightColor", light.finalColor);
+                cmd.SetGlobalVector("_LightDirection", -light.light.transform.forward.normalized);
+                if (light.lightType == LightType.Spot)
+                    cmd.SetGlobalFloat("_LightCosHalfAngle", Mathf.Cos(Mathf.Deg2Rad * light.spotAngle / 2));
+                else
+                    cmd.SetGlobalFloat("_LightCosHalfAngle", -2);
+            }
+
+            if (renderingData.shadowMapData.ContainsKey(light.light))
+            {
+                var shadowData = renderingData.shadowMapData[light.light];
+                cmd.SetGlobalMatrix("_WorldToLight", shadowData.world2Light);
+                cmd.SetGlobalTexture("_ShadowMap", shadowData.shadowMapIdentifier);
+                cmd.SetGlobalFloat("_ShadowBias", shadowData.bias);
+                cmd.SetGlobalInt("_ShadowType", (int)shadowData.ShadowType);
+                cmd.SetGlobalVector("_ShadowParameters", shadowData.ShadowParameters);
+                cmd.SetGlobalMatrix("_ShadowPostTransform", shadowData.postTransform);
+            }
+            else
+            {
+                cmd.SetGlobalMatrix("_WorldToLight", Matrix4x4.identity);
+                cmd.SetGlobalTexture("_ShadowMap", renderingData.DefaultShadowMap);
+            }
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            CommandBufferPool.Release(cmd);
+        }
+
+        public void SetupGlobalLight(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
             var mainLightIdx = GetMainLightIndex(ref renderingData);
             if (mainLightIdx >= 0)
             {
                 var mainLight = renderingData.lights[GetMainLightIndex(ref renderingData)];
-                if (renderingData.shadowMapData.ContainsKey(mainLight.light))
-                {
-                    var shadowData = renderingData.shadowMapData[mainLight.light];
-                    cmd.SetGlobalMatrix("_WorldToLight", shadowData.world2Light);
-                    cmd.SetGlobalTexture("_ShadowMap", shadowData.shadowMapIdentifier);
-                    cmd.SetGlobalFloat("_ShadowBias", shadowData.bias);
-                    cmd.SetGlobalInt("_ShadowType", (int)shadowData.ShadowType);
-                    cmd.SetGlobalVector("_ShadowParameters", shadowData.ShadowParameters);
-                    cmd.SetGlobalMatrix("_ShadowPostTransform", shadowData.postTransform);
-                }
-                else
-                {
-                    cmd.SetGlobalMatrix("_WorldToLight", Matrix4x4.identity);
-                    cmd.SetGlobalTexture("_ShadowMap", renderingData.DefaultShadowMap);
-                }
+                
 
                 if (mainLight.light.type == LightType.Directional)
                     cmd.SetGlobalVector("_MainLightPosition", -mainLight.light.transform.forward.ToVector4(0));

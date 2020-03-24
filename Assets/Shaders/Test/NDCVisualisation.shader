@@ -9,6 +9,7 @@ Shader "SarRP/Test/NDCVisualisation" {
     HLSLINCLUDE
 
     #include "../Lib.hlsl"
+    #include "../Light.hlsl"
     
     #pragma enable_d3d11_debug_symbols
 
@@ -43,8 +44,6 @@ Shader "SarRP/Test/NDCVisualisation" {
 	sampler2D _Normal;
 	float4 _Normal_ST;
     float _BumpScale;
-
-    float4 _AmbientLight;
 
     float4 frag(v2f_legacy i) : SV_TARGET
     {

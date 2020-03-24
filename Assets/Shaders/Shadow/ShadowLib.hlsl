@@ -1,5 +1,8 @@
 #pragma enable_d3d11_debug_symbols
 
+#ifndef SHADOW_LIB
+#define SHADOW_LIB
+
 float _ShadowBias;
 float4x4 _WorldToLight;
 float4x4 _LightViewProjection;
@@ -69,6 +72,44 @@ float shadowAt(v2f_legacy i)
     return 1;
 }
 
+float shadowAt(v2f_default i)
+{
+    if(_ShadowType == 0)
+    {
+	    float4 p = float4(i.worldPos.xyz, 1);
+        p = mul(_WorldToLight, p);
+        p /= p.w;
+        p.z = 1 - (0.5 * p.z + .5);
+        float2 uv = p.xy * .5 + .5;
+	    float2 clip = step(0, uv.xy) * (1 - step(1, uv.xy));
+        float shadowDepth = _ShadowMap.Sample(tex_point_clamp_sampler, uv) * clip.x * clip.y;
+	    if(shadowDepth <= 0)
+	    	shadowDepth = -100;
+        return step(shadowDepth, p.z + _ShadowBias);
+    }
+    else if (_ShadowType == 2)
+    {
+	    float4 p = float4(i.worldPos.xyz, 1);
+        float4 pClip = mul(_WorldToLight, p);
+        pClip /= p.w;
+        pClip.w = 1;
+
+        p = mul(_ShadowPostTransform, pClip);
+        p /= p.w;
+        p.y *= -1;
+        
+        float2 uv = p.xy * .5 + .5;
+	    float2 clip = step(0, uv.xy) * (1 - step(1, uv.xy));
+        float shadowDepth = _ShadowMap.Sample(tex_point_clamp_sampler, uv) * clip.x * clip.y;
+	    if(shadowDepth <= 0)
+	    	shadowDepth = -100;
+        return step(shadowDepth, pClip.z + _ShadowBias);
+    }
+
+    //return float4(shadowDepth, p.z, 0, 1);
+    return 1;
+}
+
 float4 objectToPSMClipPos(float3 pos)
 {
     float4 p = UnityObjectToClipPos(pos);
@@ -76,3 +117,5 @@ float4 objectToPSMClipPos(float3 pos)
     p = mul(_WorldToLight, p);
     return p;
 }
+
+#endif
