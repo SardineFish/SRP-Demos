@@ -1,22 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SarRP.Component
 {
+    [ExecuteInEditMode]
     [RequireComponent(typeof(Light))]
     public class LightVolume : MonoBehaviour
     {
-        new Light light;
+        public new Light light { get; private set; }
         public Mesh VolumeMesh { get; private set; }
+        float previousAngle;
         private void Awake()
-        {
-            Reset();
-        }
-        private void Reset()
         {
             light = GetComponent<Light>();
             VolumeMesh = new Mesh();
+            Reset();
+            previousAngle = light.spotAngle;
+        }
+        private void Reset()
+        {
             VolumeMesh.vertices = new Vector3[]
             {
                 new Vector3(-1, -1, -1),
@@ -39,7 +44,14 @@ namespace SarRP.Component
             };
             VolumeMesh.RecalculateNormals();
             UpdateMesh();
-            GetComponent<MeshFilter>().mesh = VolumeMesh;
+        }
+        private void Update()
+        {
+            if(light.spotAngle != previousAngle)
+            {
+                previousAngle = light.spotAngle;
+                UpdateMesh();
+            }
         }
 
         void UpdateMesh()
@@ -73,6 +85,29 @@ namespace SarRP.Component
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireMesh(VolumeMesh, 0, transform.position, transform.rotation, transform.lossyScale);
+
+        }
+
+        List<Vector4> planes = new List<Vector4>(6);
+        public List<Vector4> GetVolumeBoundFaces(Camera camera)
+        {
+            planes.Clear();
+            Matrix4x4 viewProjection = Matrix4x4.identity;
+            if(light.type == LightType.Spot)
+            {
+                viewProjection = Matrix4x4.Perspective(light.spotAngle, 1, 0.03f, light.range) * Matrix4x4.Scale(new Vector3(1, 1, -1)) * light.transform.worldToLocalMatrix;
+                var m0 = viewProjection.GetRow(0);
+                var m1 = viewProjection.GetRow(1);
+                var m2 = viewProjection.GetRow(2);
+                var m3 = viewProjection.GetRow(3);
+                planes.Add( -(m3 + m0));
+                planes.Add( -(m3 - m0));
+                planes.Add( -(m3 + m1));
+                planes.Add( -(m3 - m1));
+                // planes.Add( -(m3 + m2)); // ignore near
+                planes.Add( -(m3 - m2));
+            }
+            return planes;
 
         }
     }

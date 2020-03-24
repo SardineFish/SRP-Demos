@@ -7,13 +7,7 @@ Shader "SarRP/LightVolume/VolumeMesh" {
 
     #include "../Lib.hlsl"
 
-    float intersectPlane(float4 plane, float3 origin, float3 dir, out bool intersect)
-    {
-        // t = -(O . P) / (D . P)
-        float d = dot(dir, plane.xyz);
-        intersect = d == 0;
-        return -dot(float4(origin.xyz, 1), plane) / d;
-    }
+    
 
     float frag(v2f_default i) : SV_TARGET
     {
