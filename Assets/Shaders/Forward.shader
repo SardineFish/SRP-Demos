@@ -20,10 +20,9 @@ Shader "SarRP/ForwardDefault" {
 	float4 _Normal_ST;
     float _BumpScale;
 
-    float4 light(v2f_default i) : SV_TARGET
+    float4 light(v2f_default i, float3 ambient)
     {
         float4 albedo = tex2D(_MainTex, i.uv) * _Color;
-		float3 ambient = _AmbientLight.rgb * albedo.rgb;
         float4 packNormal = tex2D(_Normal, i.uv); 
         float3 normal = UnpackNormal(packNormal);
         normal.xy *= _BumpScale;
@@ -33,15 +32,25 @@ Shader "SarRP/ForwardDefault" {
 
         float3 lightDir, lightColor;
         lightAt(i.worldPos, lightDir, lightColor);
-        lightColor += _AmbientLight;
+        lightColor *= shadowAt(i);
+        lightColor += ambient;
 
         float3 diffuse = brdf_lambertian(albedo);
         float3 color = pbr_light(diffuse, lightColor, lightDir, normal);
-        color = color * shadowAt(i);
+        color = color;
 
         return float4(color.rgb, albedo.a);
     }
 
+    float4 forwardBase(v2f_default i) : SV_TARGET
+    {
+        return light(i, _AmbientLight);
+    }
+
+    float4 forwardAdd(v2f_default i) : SV_TARGET
+    {
+        return light(i, 0);
+    }
 
     ENDHLSL
 
@@ -59,14 +68,8 @@ Shader "SarRP/ForwardDefault" {
 
             HLSLPROGRAM
 
-			#include "UnityCG.cginc"
-            #include "./Lib.hlsl"
-            
-            #include "./Shadow/ShadowLib.hlsl" 
-            
-
             #pragma vertex vert_default
-            #pragma fragment light
+            #pragma fragment forwardBase
 
             #pragma enable_d3d11_debug_symbols
 
@@ -82,14 +85,8 @@ Shader "SarRP/ForwardDefault" {
 
             HLSLPROGRAM
 
-			#include "UnityCG.cginc"
-            #include "./Lib.hlsl"
-            
-            #include "./Shadow/ShadowLib.hlsl" 
-            
-
             #pragma vertex vert_default
-            #pragma fragment light
+            #pragma fragment forwardAdd
 
             #pragma enable_d3d11_debug_symbols
 
