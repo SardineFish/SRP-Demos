@@ -1,15 +1,19 @@
 Shader "SarRP/LightVolume/Raymarching" {
     Properties {
+        [HideInInspector] _MainTex ("MainTex", 2D) = "white" {}
         _ExtinctionTex ("Extinction", 3D) = "white" {}
         _UVScale ("UV Scale", Vector) = (1, 1, 1, 1)
         _ExtinctionScale ("Extinction Scale", Color) = (1, 1, 1, 1)
         _LightAttenuation ("Light Attenuation", Range(0, 1)) = 1
         _Steps ("Steps", Int) = 64
+        _Seed ("Seed", Float) = 1
+        _SampleNoise ("Sample Noise", 2D) = "black" {}
     }
 
     HLSLINCLUDE
 
     #include "../Lib.hlsl"
+    #include "../Noise.hlsl"
 
     float intersectPlane(float4 plane, float3 origin, float3 dir, out bool intersect)
     {
@@ -36,6 +40,11 @@ Shader "SarRP/LightVolume/Raymarching" {
     float _LightAttenuation;
     float4 _BoundaryPlanes[16];
     int _BoundaryPlaneCount;
+    float _Seed;
+    float4 _FrameSize;
+    
+    sampler2D _SampleNoise;
+    float4 _SampleNoise_TexelSize;
 
     float4 volumeDepth(v2f_default i, fixed facing : VFACE) : SV_TARGET
     {
@@ -116,19 +125,57 @@ Shader "SarRP/LightVolume/Raymarching" {
         return minFar - maxNear;
     }
 
+    float sampleOffset(float2 screenPos)
+    {
+        //return 0;
+        // return gold_noise(screenPos, _Seed);
+        return tex2D(_SampleNoise, screenPos * _FrameSize.xy * _SampleNoise_TexelSize.xy) * 2 - 1;
+    }
+
     float4 volumeLight(v2f_default i) : SV_TARGET
     {
+        i.screenPos /= i.screenPos.w;
         float3 ray = normalize(i.worldPos - _WorldCameraPos);
-        uint3 coord = uint3(_ScreenParams.xy * i.pos.xy, _VolumeIndex);
         float near, far, depth;
 
         depth = getBoundary(ray, near, far);
+
+        float offset = sampleOffset(i.screenPos.xy) * (far - near) / _Steps;
+        far += offset;
+        near +=offset;
 
         float3 transmittance = 1;
         float3 color = 0;
         color = scattering(ray, near, far, transmittance);
 
-        return float4(color.rgb, 1);
+        return float4(color, 1);
+    }
+
+    sampler2D _MainTex;
+    float4 _MainTex_TexelSize;
+
+    float randf(float2 pos, float seed)
+    {
+        return gold_noise(pos, seed) *.5 + .5;
+    }
+
+    float4 mixScreen(v2f_default i) : SV_TARGET
+    {
+        float4 col = 0;
+        float R = 8;
+        for(int j = 0; j < 4; j++)
+        {
+            float dist = j * R;
+            dist += randf(i.uv.xy, _Seed + j);
+            dist = sqrt(dist);
+            float2 rot;
+            float ang = randf(i.uv.xy, _Seed + j) * 2 * PI;
+            sincos(ang, rot.x, rot.y);
+            float2 offset = rot * dist * _MainTex_TexelSize.xy;
+            col += tex2D(_MainTex, i.uv.xy + offset).rgba;
+        }
+        //return tex2D(_MainTex, i.uv.xy);
+        return col / 4;
     }
 
     ENDHLSL
@@ -153,7 +200,7 @@ Shader "SarRP/LightVolume/Raymarching" {
         // #1 Volumetric scattering
         Pass {
             Name "Light Volume Scattering"
-            ZTest Less
+            ZTest Off
             ZWrite On
             Cull Back
             Blend One One
@@ -164,7 +211,26 @@ Shader "SarRP/LightVolume/Raymarching" {
             #pragma fragment volumeLight
             #pragma target 5.0
             
-    #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // #2 Blit to Screen Buffer
+        Pass {
+            Name "Light Volume Scattering"
+            ZTest Off
+            ZWrite On
+            Cull Back
+            Blend One One
+
+            HLSLPROGRAM
+
+            #pragma vertex vert_default
+            #pragma fragment mixScreen
+            #pragma target 5.0
+            
+            //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL
         }

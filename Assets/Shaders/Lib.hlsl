@@ -21,6 +21,7 @@ struct v2f_default
 	float3 normal : TEXCOORD1;
 	float4 tangent : TEXCOORD2;
 	float3 worldPos : TEXCOORD3;
+	float4 screenPos : TEXCOORD4;
 };
 
 struct v2f_no_clip_pos
@@ -84,6 +85,7 @@ v2f_default vert_default(appdata_full i)
 	o.tangent = float4(UnityObjectToWorldDir(i.tangent.xyz), i.tangent.w);
 	//o.binormal = cross(o.normal, o.tangent) * i.tangent.w;
     o.worldPos = mul(unity_ObjectToWorld, i.vertex);
+	o.screenPos = ComputeScreenPos(o.pos);
 	return o;
 }
 

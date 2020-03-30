@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b0ce8fa78e035b488bcf710eb4fca7d, type: 3}
   m_Name: LightVolume
   m_EditorClassIdentifier: 
-  VolumeDepthResolutionScale: 2
+  VolumeResolutionScale: 2
   Material: {fileID: 2100000, guid: cde01e24d11afd64ab1c2d3660fd0770, type: 2}

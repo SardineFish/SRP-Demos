@@ -13,12 +13,14 @@ namespace SarRP.Component
         public new Light light { get; private set; }
         public Mesh VolumeMesh { get; private set; }
         float previousAngle;
+        float previousRange;
         private void Awake()
         {
             light = GetComponent<Light>();
             VolumeMesh = new Mesh();
             Reset();
             previousAngle = light.spotAngle;
+            previousRange = light.range;
         }
         private void Reset()
         {
@@ -47,9 +49,10 @@ namespace SarRP.Component
         }
         private void Update()
         {
-            if(light.spotAngle != previousAngle)
+            if(light.spotAngle != previousAngle || light.range != previousRange)
             {
                 previousAngle = light.spotAngle;
+                previousRange = light.range;
                 UpdateMesh();
             }
         }

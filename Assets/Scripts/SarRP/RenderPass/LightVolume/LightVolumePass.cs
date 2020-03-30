@@ -11,8 +11,9 @@ namespace SarRP.Renderer
     [CreateAssetMenu(fileName ="LightVolume", menuName ="SarRP/RenderPass/LightVolume")]
     public class LightVolumePass : RenderPassAsset
     {
-        public int VolumeDepthResolutionScale = 2;
+        public int VolumeResolutionScale = 2;
         public Material Material;
+        public Texture2D[] JitterPatterns;
         public override RenderPass CreateRenderPass()
         {
             return new LightVolumeRenderer(this);
@@ -28,6 +29,7 @@ namespace SarRP.Renderer
         }
         const int PassVolumeDepth = 0;
         const int PassVolumeScattering = 1;
+        const int PassVolumeResolve = 2;
         List<LightVolumeData> visibleVolumes = new List<LightVolumeData>();
         int VolumeDepthTex = -1;
 
@@ -56,8 +58,8 @@ namespace SarRP.Renderer
             var cmd = CommandBufferPool.Get();
             var rt = new RenderTextureDescriptor()
             {
-                width = renderingData.camera.pixelWidth / asset.VolumeDepthResolutionScale,
-                height = renderingData.camera.pixelHeight / asset.VolumeDepthResolutionScale,
+                width = renderingData.camera.pixelWidth / asset.VolumeResolutionScale,
+                height = renderingData.camera.pixelHeight / asset.VolumeResolutionScale,
                 colorFormat = RenderTextureFormat.RGHalf,
                 dimension = TextureDimension.Tex2DArray,
                 volumeDepth = visibleVolumes.Count,
@@ -72,8 +74,19 @@ namespace SarRP.Renderer
         }
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RenderVolumeDepth(context, renderingData);
-            RenderLightVolume(context, renderingData);
+            //RenderVolumeDepth(context, renderingData);
+
+            var cmd = CommandBufferPool.Get("Volumetric Light");
+            using (new ProfilingSample(cmd, "Volumetric Light"))
+            {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                RenderLightVolume(context, renderingData);
+            }
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            CommandBufferPool.Release(cmd);
         }
         void RenderVolumeDepth(ScriptableRenderContext context, RenderingData renderingData)
         {
@@ -100,10 +113,15 @@ namespace SarRP.Renderer
         void RenderLightVolume(ScriptableRenderContext context, RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get("Light Volume");
-            cmd.SetRenderTarget(renderingData.ColorTarget, renderingData.DepthTarget);
+
+            var renderSize = new Vector2Int(renderingData.camera.pixelWidth, renderingData.camera.pixelHeight) / asset.VolumeResolutionScale;
+            var rt = IdentifierPool.Get();
+            cmd.GetTemporaryRT(rt, renderSize.x, renderSize.y, 0, FilterMode.Point, RenderTextureFormat.Default);
+            cmd.SetRenderTarget(rt, rt);
+            cmd.ClearRenderTarget(false, true, Color.black);
             cmd.SetGlobalTexture("_CameraDepth", renderingData.DepthTarget);
 
-            foreach(var volumeData in visibleVolumes)
+            foreach (var volumeData in visibleVolumes)
             {
                 var light = renderingData.cullResults.visibleLights[volumeData.LightIndex];
                 Vector4 lightPos;
@@ -116,8 +134,11 @@ namespace SarRP.Renderer
                 cmd.SetGlobalFloat("_LightAngle", Mathf.Cos(Mathf.Deg2Rad * light.spotAngle / 2));
                 cmd.SetGlobalVector("_LightColor", light.finalColor);
                 cmd.SetGlobalVector("_WorldCameraPos", renderingData.camera.transform.position);
+                cmd.SetGlobalVector("_FrameSize", new Vector4(renderSize.x, renderSize.y, 1f / renderSize.x, 1f / renderSize.y));
+                if (asset.JitterPatterns.Length > 0)
+                    cmd.SetGlobalTexture("_SampleNoise", asset.JitterPatterns[renderingData.FrameID % asset.JitterPatterns.Length]);
 
-                if(renderingData.shadowMapData.ContainsKey(volumeData.Volume.light))
+                if (renderingData.shadowMapData.ContainsKey(volumeData.Volume.light))
                 {
                     var shadowData = renderingData.shadowMapData[volumeData.Volume.light];
                     cmd.SetGlobalTexture("_ShadowMap", shadowData.shadowMapIdentifier);
@@ -136,6 +157,14 @@ namespace SarRP.Renderer
                 cmd.DrawMesh(volumeData.Volume.VolumeMesh, volumeData.Volume.transform.localToWorldMatrix, volumeMat, 0, PassVolumeScattering);
             }
 
+            cmd.Blit(rt, renderingData.ColorTarget, volumeMat, PassVolumeResolve);
+
+
+            //cmd.ReleaseTemporaryRT(rt);
+            //IdentifierPool.Release(rt);
+            cmd.ReleaseTemporaryRT(rt);
+            IdentifierPool.Release(rt);
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
@@ -144,7 +173,7 @@ namespace SarRP.Renderer
         public override void Cleanup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
-            cmd.ReleaseTemporaryRT(VolumeDepthTex);
+            //cmd.ReleaseTemporaryRT(VolumeDepthTex);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);

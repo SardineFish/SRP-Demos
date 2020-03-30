@@ -17,5 +17,6 @@ namespace SarRP
         public RenderTargetIdentifier DepthTarget;
         public Dictionary<Light, Renderer.ShadowMapData> shadowMapData;
         public RenderTargetIdentifier DefaultShadowMap;
+        public int FrameID;
     }
 }

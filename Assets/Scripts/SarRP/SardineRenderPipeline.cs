@@ -15,6 +15,7 @@ namespace SarRP
         int ColorTarget;
         int DepthTarget;
         bool rtCreated = false;
+        int frameID = 0;
         public SardineRenderPipeline(SardineRenderPipelineAsset asset)
         {
             settings = asset;
@@ -23,6 +24,7 @@ namespace SarRP
         }
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            frameID++;
             BeginFrameRendering(context, cameras);
 
             foreach (var camera in cameras)
@@ -57,7 +59,8 @@ namespace SarRP
                 cullResults = cullResults,
                 ColorTarget = BuiltinRenderTextureType.CameraTarget,
                 DepthTarget = BuiltinRenderTextureType.CameraTarget,
-                shadowMapData = new Dictionary<Light, ShadowMapData>()
+                shadowMapData = new Dictionary<Light, ShadowMapData>(),
+                FrameID = frameID
             };
 
             this.Setup(context, ref renderingData);

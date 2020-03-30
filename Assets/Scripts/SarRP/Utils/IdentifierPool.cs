@@ -19,6 +19,8 @@ namespace SarRP
         }
         public static int Get()
         {
+            if (nextId >= 100)
+                Debug.LogWarning("RenderTextures might be leaking.");
             if (availableIDs.Count <= 0)
                 availableIDs.Enqueue(nextId++);
             var num = availableIDs.Dequeue();
