@@ -15,8 +15,15 @@ namespace SarRP
         public Unity.Collections.NativeArray<VisibleLight> lights;
         public RenderTargetIdentifier ColorTarget;
         public RenderTargetIdentifier DepthTarget;
+        public RenderTextureFormat ColorBufferFormat;
         public Dictionary<Light, Renderer.ShadowMapData> shadowMapData;
         public RenderTargetIdentifier DefaultShadowMap;
         public int FrameID;
+        public bool DiscardFrameBuffer;
+        public Vector2 ProjectionJitter;
+        public Vector2 NextProjectionJitter;
+        public Matrix4x4 JitteredProjectionMatrix;
+        public Matrix4x4 ProjectionMatrix;
+        public Matrix4x4 ViewMatrix;
     }
 }

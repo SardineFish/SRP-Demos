@@ -60,7 +60,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleNoise:
-        m_Texture: {fileID: 2800000, guid: d95cbe38b6ec2814fb9ea38d1b4997dd, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2f61e7d03e950d941ae83622eec3a6b7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:

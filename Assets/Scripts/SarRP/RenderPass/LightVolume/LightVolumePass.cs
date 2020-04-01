@@ -55,22 +55,6 @@ namespace SarRP.Renderer
                     });
                 }
             }
-            var cmd = CommandBufferPool.Get();
-            var rt = new RenderTextureDescriptor()
-            {
-                width = renderingData.camera.pixelWidth / asset.VolumeResolutionScale,
-                height = renderingData.camera.pixelHeight / asset.VolumeResolutionScale,
-                colorFormat = RenderTextureFormat.RGHalf,
-                dimension = TextureDimension.Tex2DArray,
-                volumeDepth = visibleVolumes.Count,
-                useMipMap = false,
-                enableRandomWrite = true,
-                msaaSamples = 1
-            };
-            cmd.GetTemporaryRT(VolumeDepthTex, rt, FilterMode.Point);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-            CommandBufferPool.Release(cmd);
         }
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)
         {

@@ -16,6 +16,7 @@ namespace SarRP
         int DepthTarget;
         bool rtCreated = false;
         int frameID = 0;
+        DoubleBuffer<Vector2> projectionJitter = new DoubleBuffer<Vector2>((_) => new Vector2(.5f, .5f));
         public SardineRenderPipeline(SardineRenderPipelineAsset asset)
         {
             settings = asset;
@@ -24,7 +25,6 @@ namespace SarRP
         }
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            frameID++;
             BeginFrameRendering(context, cameras);
 
             foreach (var camera in cameras)
@@ -36,6 +36,9 @@ namespace SarRP
                 EndCameraRendering(context, camera);
             }
             EndFrameRendering(context, cameras);
+
+            frameID++;
+            projectionJitter.Flip();
         }
         protected virtual void RenderCamera(ScriptableRenderContext context, Camera camera)
         {
@@ -53,20 +56,32 @@ namespace SarRP
 
             var cullResults = context.Cull(ref cullingParameters);
 
+            var projectionMat = camera.projectionMatrix;
+            var jitteredProjectionMat = projectionMat;
+            jitteredProjectionMat.m02 += (projectionJitter.Current.x * 2 - 1) / camera.pixelWidth;
+            jitteredProjectionMat.m12 += (projectionJitter.Current.x * 2 - 1) / camera.pixelHeight;
+
             var renderingData = new RenderingData()
             {
                 camera = camera,
                 cullResults = cullResults,
                 ColorTarget = BuiltinRenderTextureType.CameraTarget,
                 DepthTarget = BuiltinRenderTextureType.CameraTarget,
+                ColorBufferFormat = RenderTextureFormat.Default,
                 shadowMapData = new Dictionary<Light, ShadowMapData>(),
-                FrameID = frameID
+                FrameID = frameID,
+                DiscardFrameBuffer = true,
+                ViewMatrix = camera.worldToCameraMatrix,
+                ProjectionMatrix = projectionMat,
+                JitteredProjectionMatrix = jitteredProjectionMat,
+                ProjectionJitter = new Vector2(.5f,.5f),
+                NextProjectionJitter = new Vector2(.5f, .5f),
             };
 
             this.Setup(context, ref renderingData);
             context.SetupCameraProperties(camera, false);
 
-            InitRenderQueue();
+            InitRenderQueue(camera);
             SetupLight(ref renderingData);
 
             /*RenderTargetBinding binding = new RenderTargetBinding();
@@ -109,7 +124,8 @@ namespace SarRP
                 pass.Render(context, ref renderingData);
             }
 
-            cmd.Blit(ColorTarget, BuiltinRenderTextureType.CameraTarget);
+            cmd.Blit(renderingData.ColorTarget, BuiltinRenderTextureType.CameraTarget);
+            //cmd.CopyTexture(renderingData.DepthTarget, BuiltinRenderTextureType.CameraTarget);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
@@ -132,6 +148,8 @@ namespace SarRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             context.Submit();
+
+            projectionJitter.Next = renderingData.NextProjectionJitter;
         }
 
         void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -139,11 +157,15 @@ namespace SarRP
             if(!rtCreated)
             {
                 var camera = renderingData.camera;
+                var cmd = CommandBufferPool.Get();
+                renderingData.ColorBufferFormat = settings.HDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+                //this.ColorTarget = RenderTarget.GetTemporary(cmd, "_ColorTarget", camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, renderingData.ColorBufferFormat);
+                //this.DepthTarget = RenderTarget.GetTemporary(cmd, "_DepthTarget", camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Point, RenderTextureFormat.Depth);
                 this.ColorTarget = Shader.PropertyToID("_ColorTarget");
                 this.DepthTarget = Shader.PropertyToID("_DepthTarget");
-                var cmd = CommandBufferPool.Get();
-                cmd.GetTemporaryRT(ColorTarget, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBFloat);
+                cmd.GetTemporaryRT(ColorTarget, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, renderingData.ColorBufferFormat);
                 cmd.GetTemporaryRT(DepthTarget, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Point, RenderTextureFormat.Depth);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 CommandBufferPool.Release(cmd);
@@ -156,6 +178,8 @@ namespace SarRP
         void Cleanup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
+            //ColorTarget.Release(cmd);
+            //DepthTarget.Release(cmd);
             cmd.ReleaseTemporaryRT(ColorTarget);
             cmd.ReleaseTemporaryRT(DepthTarget);
             context.ExecuteCommandBuffer(cmd);
@@ -168,13 +192,13 @@ namespace SarRP
             renderingData.lights = renderingData.cullResults.visibleLights;
         }
 
-        void InitRenderQueue()
+        void InitRenderQueue(Camera camera)
         {
             RenderPassQueue.Clear();
             foreach (var renderPassAsset in settings.RenderPasses)
             {
                 if (renderPassAsset)
-                    RenderPassQueue.Add(renderPassAsset.CreateRenderPass());
+                    RenderPassQueue.Add(renderPassAsset.GetRenderPass(camera));
             }
         }
     }

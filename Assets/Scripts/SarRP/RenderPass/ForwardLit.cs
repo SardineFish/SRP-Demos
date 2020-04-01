@@ -37,6 +37,7 @@ namespace SarRP.Renderer
                 cmd.Clear();
 
                 cmd.SetRenderTarget(renderingData.ColorTarget, renderingData.DepthTarget);
+                cmd.SetViewProjectionMatrices(renderingData.ViewMatrix, renderingData.JitteredProjectionMatrix);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

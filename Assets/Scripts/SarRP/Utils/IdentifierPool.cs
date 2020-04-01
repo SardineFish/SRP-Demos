@@ -31,8 +31,11 @@ namespace SarRP
         }
         public static void Release(int id)
         {
-            var num = usedIDs[id];
-            availableIDs.Enqueue(num);
+            if(usedIDs.ContainsKey(id))
+            {
+                var num = usedIDs[id];
+                availableIDs.Enqueue(num);
+            }
         }
     }
 }

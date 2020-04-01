@@ -23,7 +23,7 @@ namespace SarRP.Renderer
         const int PassTSM = 2;
         public Dictionary<Light, ShadowMapData> LightMaps = new Dictionary<Light, ShadowMapData>();
         Material shadowMapMat;
-        int defaultShadowMap = -1;
+        int defaultShadowMap;
         public ShadowPassRenderer(ShadowPass asset) : base(asset)
         {
             shadowMapMat = new Material(Shader.Find("SarRP/Shadow/ShadowMap"));
@@ -33,13 +33,14 @@ namespace SarRP.Renderer
         {
             if (!shadowMapMat)
                 shadowMapMat = new Material(Shader.Find("SarRP/Shadow/ShadowMap"));
-            if(defaultShadowMap <0)
+            if (defaultShadowMap<=0)
             {
-                defaultShadowMap = Shader.PropertyToID("_DefaultShadowMapTex");
                 var cmd = CommandBufferPool.Get();
+                defaultShadowMap = Shader.PropertyToID("_DefaultShadowMapTex");
                 cmd.GetTemporaryRT(defaultShadowMap, 16, 16, 32, FilterMode.Point, RenderTextureFormat.Depth);
                 cmd.SetRenderTarget(defaultShadowMap, defaultShadowMap);
                 cmd.ClearRenderTarget(true, true, Color.black);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 CommandBufferPool.Release(cmd);

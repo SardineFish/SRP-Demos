@@ -17,6 +17,10 @@ namespace SarRP
         float m_MaxShadowDistance;
 
         [SerializeField]
+        [Header("HDR")]
+        bool m_HDR = false;
+
+        [SerializeField]
         [HideInInspector]
         List<RenderPassAsset> m_RenderPasses = new List<RenderPassAsset>();
         public List<RenderPassAsset> RenderPasses => m_RenderPasses;
@@ -25,6 +29,11 @@ namespace SarRP
         {
             get => m_MaxShadowDistance;
             set => m_MaxShadowDistance = value;
+        }
+        public bool HDR
+        {
+            get => m_HDR;
+            set => m_HDR = value;
         }
         protected override RenderPipeline CreatePipeline()
         {

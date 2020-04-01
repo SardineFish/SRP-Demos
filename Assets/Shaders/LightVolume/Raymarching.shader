@@ -7,7 +7,7 @@ Shader "SarRP/LightVolume/Raymarching" {
         _LightAttenuation ("Light Attenuation", Range(0, 1)) = 1
         _Steps ("Steps", Int) = 64
         _Seed ("Seed", Float) = 1
-        _SampleNoise ("Sample Noise", 2D) = "black" {}
+        //_SampleNoise ("Sample Noise", 2D) = "black" {}
     }
 
     HLSLINCLUDE
