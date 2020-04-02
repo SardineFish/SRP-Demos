@@ -7,12 +7,14 @@ Shader "SarRP/LightVolume/Raymarching" {
         _LightAttenuation ("Light Attenuation", Range(0, 1)) = 1
         _Steps ("Steps", Int) = 64
         _Seed ("Seed", Float) = 1
+        _HGFactor ("HG Phase Factor", Range(-1, 1)) = 0
         //_SampleNoise ("Sample Noise", 2D) = "black" {}
     }
 
     HLSLINCLUDE
 
     #include "../Lib.hlsl"
+    #include "../Light.hlsl"
     #include "../Noise.hlsl"
 
     float intersectPlane(float4 plane, float3 origin, float3 dir, out bool intersect)
@@ -31,10 +33,6 @@ Shader "SarRP/LightVolume/Raymarching" {
     float4x4 _LightProjectionMatrix;
     int _UseShadow;
     float3 _UVScale;
-    float4 _LightPosition;
-    float3 _LightDirection;
-    float _LightAngle;
-    float3 _LightColor;
     int _Steps;
     float3 _ExtinctionScale;
     float _LightAttenuation;
@@ -42,6 +40,7 @@ Shader "SarRP/LightVolume/Raymarching" {
     int _BoundaryPlaneCount;
     float _Seed;
     float4 _FrameSize;
+    float _HGFactor;
     
     sampler2D _SampleNoise;
     float4 _SampleNoise_TexelSize;
@@ -56,6 +55,12 @@ Shader "SarRP/LightVolume/Raymarching" {
             depth.g = distance(i.worldPos, _WorldCameraPos);
         _RWVolumeDepthTexture[coord] = depth;
         return float4(depth.rg, 0, 0);
+    }
+
+    float phaseHG(float3 lightDir, float3 viewDir)
+    {
+        float g = _HGFactor;
+        return (1 - g * g) / (4 * PI * pow(1 + g * g - 2 * g * dot(viewDir, lightDir), 1.5)); 
     }
 
     float3 extinctionAt(float3 pos)
@@ -86,7 +91,7 @@ Shader "SarRP/LightVolume/Raymarching" {
         float3 transmittance = lerp(1, exp(-lightDistance * _ExtinctionScale), _LightAttenuation);
 
 	    float3 lightColor = _LightColor.rgb;
-        lightColor *= step(_LightAngle, dot(lightDir, _LightDirection));
+        lightColor *= step(_LightCosHalfAngle, dot(lightDir, _LightDirection));
         lightColor *= shadowAt(pos);
         lightColor *= transmittance;
 
@@ -137,6 +142,8 @@ Shader "SarRP/LightVolume/Raymarching" {
         i.screenPos /= i.screenPos.w;
         float3 ray = normalize(i.worldPos - _WorldCameraPos);
         float near, far, depth;
+        
+        float3 nearWorldPos = _WorldCameraPos + ray * near;
 
         depth = getBoundary(ray, near, far);
 
@@ -148,7 +155,24 @@ Shader "SarRP/LightVolume/Raymarching" {
         float3 color = 0;
         color = scattering(ray, near, far, transmittance);
 
+
+
         return float4(color, 1);
+    }
+
+    sampler2D _CameraDepthTex;
+    float _GlobalFogExtinction;
+
+    float4 globalFog(v2f_ray i) : SV_TARGET
+    {
+        float3 ray = normalize(i.ray);
+        float depth = tex2D(_CameraDepthTex, i.uv).r;
+        float3 worldPos = _WorldCameraPos + LinearEyeDepth(depth) * i.ray;
+        float z = distance(_WorldCameraPos, worldPos);
+        float transmittance = exp(-_GlobalFogExtinction * z);
+
+        float3 color = _AmbientLight * (1 - transmittance);
+        return float4(color.rgb, 1 - transmittance);
     }
 
     sampler2D _MainTex;
@@ -228,6 +252,25 @@ Shader "SarRP/LightVolume/Raymarching" {
 
             #pragma vertex vert_default
             #pragma fragment mixScreen
+            #pragma target 5.0
+            
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // #3 Global Fog
+        Pass {
+            Name "Global Fog"
+            ZTest Off
+            ZWrite On
+            Cull Off
+            Blend One OneMinusSrcAlpha
+
+            HLSLPROGRAM
+
+            #pragma vertex vert_ray
+            #pragma fragment globalFog
             #pragma target 5.0
             
             //#pragma enable_d3d11_debug_symbols

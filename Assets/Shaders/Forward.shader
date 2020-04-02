@@ -65,6 +65,8 @@ Shader "SarRP/ForwardDefault" {
             Tags {"LightMode" = "ForwardBase"}
 
             Cull Back
+            ZWrite On
+            ZTest Less
 
             HLSLPROGRAM
 
@@ -82,6 +84,8 @@ Shader "SarRP/ForwardDefault" {
 
             Cull Back
             Blend One One
+            ZWrite Off
+            ZTest LEqual
 
             HLSLPROGRAM
 

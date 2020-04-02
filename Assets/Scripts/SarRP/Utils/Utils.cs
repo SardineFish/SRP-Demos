@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SarRP.Postprocess
+namespace SarRP
 {
-    public static class Helper
+    public static class Utils
     {
         static Mesh fullScreenMesh;
         public static Mesh FullScreenMesh
@@ -25,7 +25,7 @@ namespace SarRP.Postprocess
         {
             cmd.SetGlobalTexture("_MainTex", src);
             cmd.SetRenderTarget(dst);
-            cmd.DrawMesh(FullScreenMesh, Matrix4x4.identity, mat, pass);
+            cmd.DrawMesh(FullScreenMesh, Matrix4x4.identity, mat, 0, pass);
         }
 
     }

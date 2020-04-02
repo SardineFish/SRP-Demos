@@ -12,6 +12,12 @@ namespace SarRP.Renderer
     public class LightVolumePass : RenderPassAsset
     {
         public int VolumeResolutionScale = 2;
+        public bool GlobalFog = true;
+        //[Range(0, 1)]
+        //public float GlobalExtinction = .5f;
+        public float VisibilityDistance = 20;
+        [ColorUsage(false, true)]
+        public Color FogLight;
         public Material Material;
         public Texture2D[] JitterPatterns;
         public override RenderPass CreateRenderPass()
@@ -23,13 +29,14 @@ namespace SarRP.Renderer
     {
         struct LightVolumeData
         {
-            public Component.LightVolume Volume;
+            public Component.LightVolumeRenderer Volume;
             public int LightIndex;
             public int VolumeIndex;
         }
         const int PassVolumeDepth = 0;
         const int PassVolumeScattering = 1;
         const int PassVolumeResolve = 2;
+        const int PassGlobalFog = 3;
         List<LightVolumeData> visibleVolumes = new List<LightVolumeData>();
         int VolumeDepthTex = -1;
 
@@ -45,17 +52,18 @@ namespace SarRP.Renderer
             for (var i = 0; i < renderingData.cullResults.visibleLights.Length; i++)
             {
                 var light = renderingData.cullResults.visibleLights[i];
-                if (light.light.GetComponent<Component.LightVolume>())
+                if (light.light.GetComponent<Component.LightVolumeRenderer>())
                 {
                     visibleVolumes.Add(new LightVolumeData()
                     {
                         LightIndex = i,
                         VolumeIndex = visibleVolumes.Count,
-                        Volume = light.light.GetComponent<Component.LightVolume>(),
+                        Volume = light.light.GetComponent<Component.LightVolumeRenderer>(),
                     });
                 }
             }
         }
+
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             //RenderVolumeDepth(context, renderingData);
@@ -140,6 +148,13 @@ namespace SarRP.Renderer
 
                 cmd.DrawMesh(volumeData.Volume.VolumeMesh, volumeData.Volume.transform.localToWorldMatrix, volumeMat, 0, PassVolumeScattering);
             }
+
+            cmd.SetGlobalTexture("_CameraDepthTex", renderingData.DepthTarget);
+            float extinction = Mathf.Log(1 / (1 - 0.1f)) / asset.VisibilityDistance;
+            cmd.SetGlobalFloat("_GlobalFogExtinction", extinction);
+            cmd.SetGlobalColor("_AmbientLight", asset.FogLight);
+            //cmd.Blit(BuiltinRenderTextureType.None, renderingData.ColorTarget, volumeMat, PassGlobalFog);
+            cmd.BlitFullScreen(BuiltinRenderTextureType.None, renderingData.ColorTarget, volumeMat, PassGlobalFog);
 
             cmd.Blit(rt, renderingData.ColorTarget, volumeMat, PassVolumeResolve);
 

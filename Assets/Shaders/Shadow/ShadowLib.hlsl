@@ -3,6 +3,7 @@
 #ifndef SHADOW_LIB
 #define SHADOW_LIB
 
+int _UseShadow;
 float _ShadowBias;
 float4x4 _WorldToLight;
 float4x4 _LightViewProjection;
@@ -74,6 +75,8 @@ float shadowAt(v2f_legacy i)
 
 float shadowAt(v2f_default i)
 {
+    if(_UseShadow == 0)
+        return 1;
     if(_ShadowType == 0)
     {
 	    float4 p = float4(i.worldPos.xyz, 1);

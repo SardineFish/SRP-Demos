@@ -22,6 +22,7 @@ public class ShadowSettings : MonoBehaviour
     public float DepthBias = 1;
     [Range(0, 10)]
     public float NormalBias = 1;
+    public float NearDistance = 0.1f;
     public float FocusDistance = 20;
     public bool Debug = false;
 

@@ -95,6 +95,7 @@ namespace SarRP.Renderer
             if (renderingData.shadowMapData.ContainsKey(light.light))
             {
                 var shadowData = renderingData.shadowMapData[light.light];
+                cmd.SetGlobalInt("_UseShadow", 1);
                 cmd.SetGlobalMatrix("_WorldToLight", shadowData.world2Light);
                 cmd.SetGlobalTexture("_ShadowMap", shadowData.shadowMapIdentifier);
                 cmd.SetGlobalFloat("_ShadowBias", shadowData.bias);
@@ -104,6 +105,7 @@ namespace SarRP.Renderer
             }
             else
             {
+                cmd.SetGlobalInt("_UseShadow", 0);
                 cmd.SetGlobalMatrix("_WorldToLight", Matrix4x4.identity);
                 cmd.SetGlobalTexture("_ShadowMap", renderingData.DefaultShadowMap);
             }

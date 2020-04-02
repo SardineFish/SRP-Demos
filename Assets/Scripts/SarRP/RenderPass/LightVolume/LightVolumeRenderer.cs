@@ -8,7 +8,7 @@ namespace SarRP.Component
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(Light))]
-    public class LightVolume : MonoBehaviour
+    public class LightVolumeRenderer : MonoBehaviour
     {
         public new Light light { get; private set; }
         public Mesh VolumeMesh { get; private set; }

@@ -99,7 +99,7 @@ namespace SarRP.Renderer
                 Matrix4x4 lightView = settings.light.transform.worldToLocalMatrix;
                 var frustumCamera = BestfitFrustum(false, lightView, p0, p1, p2, p3, p4);
                 var frustumCaster = BestfitFrustum(false, lightView, casterBoundVerts);
-                var near = frustumCaster.zNear;
+                var near = settings.NearDistance;
                 var far = Mathf.Min(frustumCaster.zFar, frustumCamera.zFar, settings.light.range);
 
                 return (view, Matrix4x4.Perspective(settings.light.spotAngle, 1, near, far));

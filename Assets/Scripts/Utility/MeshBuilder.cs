@@ -20,6 +20,10 @@ public class MeshBuilder
         uvs = new List<Vector2>(size * 3);
         triangles = new List<Triangle>(size);
     }
+    public void AddSubMesh(Vector3[] verts, int[] triangles)
+    {
+
+    }
     public void AddTriangle(Vector3 a, Vector3 b, Vector3 c)
     {
         AddTriangle(new Triangle(a, b, c), new TriangleData<Color>(Color.white), new TriangleData<Vector2>(Vector2.zero));
@@ -27,7 +31,7 @@ public class MeshBuilder
     public void AddTriangle(Triangle triangle, TriangleData<Color> colors, TriangleData<Vector2> uvs)
     {
         // Reverse to avoid normal issue.
-        triangle = -triangle;
+        //triangle = triangle;
         int idx = verts.Count;
         verts.Add(triangle.a);
         verts.Add(triangle.b);
