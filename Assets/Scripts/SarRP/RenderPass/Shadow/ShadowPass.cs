@@ -94,7 +94,7 @@ namespace SarRP.Renderer
         {
             var cmd = CommandBufferPool.Get();
             cmd.SetGlobalMatrix("_LightViewProjection", shadowMapData.world2Light);
-            foreach (var renderer in GameObject.FindObjectsOfType<MeshRenderer>())
+            foreach (var renderer in GameObject.FindObjectsOfType<UnityEngine.Renderer>())
             {
                 cmd.DrawRenderer(renderer, shadowMapMat, 0, pass);
             }

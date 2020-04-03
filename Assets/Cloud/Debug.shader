@@ -11,7 +11,7 @@ Shader "Cloud/Debug" {
         Tags {"PreviewType"="Plane"}
         // #0
         Pass {
-            Tags {"LightMode" = "ForwardLit"}
+            Tags {"LightMode" = "ForwardAdd"}
             ZWrite Off
             ZTest Off
             Cull Off

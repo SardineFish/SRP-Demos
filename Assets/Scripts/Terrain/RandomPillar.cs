@@ -31,7 +31,7 @@ public class RandomPillar : MonoBehaviour
                 float y = i - Size.y / 2f + (Size.y % 2 == 0 ? .5f : 0);
                 var pos = new Vector3(x, 0, y);
                 var offset = verts.Count;
-                var height = Random.Range(HightRange.x, HightRange.y);
+                var height = Mathf.Pow(Random.value, 2) * (HightRange.y - HightRange.x) + HightRange.x;
                 var jitterOffset = Vector2.Scale(OffsetJitter, Random.insideUnitCircle).ToVector3XZ(0);
 
                 verts.Clear();

@@ -66,14 +66,22 @@ Shader "SarRP/LightVolume/Raymarching" {
         return (1 - g * g) / (4 * PI * pow(1 + g * g - 2 * g * dot(viewDir, lightDir), 1.5)); 
     }
 
-    float3 extinctionAt(float3 pos)
+    float3 sampleExtinctionTex(float3 pos)
     {
-        return /*tex3D(_ExtinctionTex, pos * _UVScale).rgb * */_TransmittanceExtinction;
+        float3 noise = tex3D(_ExtinctionTex, pos * _UVScale).rgb;
+        noise *= .5;
+        noise += .5;
+        return noise;
     }
 
-    float3 lightAt(float3 pos)
+    float3 extinctionAt(float3 pos)
     {
-	    float3 lightDir = normalize(_LightPosition.xyz - pos * _LightPosition.w);
+        return 1 * _TransmittanceExtinction;
+    }
+
+    float3 lightAt(float3 pos, out float3 lightDir)
+    {
+	    lightDir = normalize(_LightPosition.xyz - pos * _LightPosition.w);
         float lightDistance = lerp(_LightDistance, distance(_LightPosition.xyz, pos), _LightPosition.w);
         float3 transmittance = lerp(1, exp(-lightDistance * _TransmittanceExtinction), _IncomingLoss);
 
@@ -98,7 +106,8 @@ Shader "SarRP/LightVolume/Raymarching" {
             //transmittance = exp(-far * extinctionAt(pos));
             /*if(transmittance.x < 0.01 && transmittance.y < 0.01 && transmittance.z < 0.01)
                 break;*/
-            totalLight += transmittance * lightAt(pos) * stepSize;
+            float3 lightDir;
+            totalLight += transmittance * lightAt(pos, lightDir) * stepSize * phaseHG(lightDir, -ray);
             //totalLight = transmittance;
         }
         return totalLight;
@@ -238,7 +247,7 @@ Shader "SarRP/LightVolume/Raymarching" {
             #pragma fragment volumeLight
             #pragma target 5.0
             
-            #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL
         }
@@ -257,7 +266,7 @@ Shader "SarRP/LightVolume/Raymarching" {
             #pragma fragment volumeLight
             #pragma target 5.0
             
-            #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL
         }

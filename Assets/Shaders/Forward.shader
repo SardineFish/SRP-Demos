@@ -35,7 +35,7 @@ Shader "SarRP/ForwardDefault" {
         lightColor *= shadowAt(i);
 
         float3 diffuse = brdf_lambertian(albedo);
-        float3 color = pbr_light(diffuse, lightColor, lightDir, normal) + ambient;
+        float3 color = pbr_light(diffuse, lightColor, lightDir, normal) + ambient * albedo;
         color = color;
 
         return float4(color.rgb, albedo.a);
