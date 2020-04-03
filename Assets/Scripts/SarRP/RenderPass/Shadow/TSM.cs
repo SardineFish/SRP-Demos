@@ -12,7 +12,9 @@ namespace SarRP.Renderer
     {
         ShadowMapData TSMShadowMap(ScriptableRenderContext context, RenderingData renderingData, ShadowSettings settings, int lightIndex)
         {
-            var camera = GameObject.Find("Main Camera").GetComponent<Camera>();
+            var camera = renderingData.camera;
+            if (settings.Debug)
+                camera = GameObject.Find("Main Camera").GetComponent<Camera>();
             var (view, projection) = GetShadowViewProjection(settings, renderingData, lightIndex);
 
             var cmd = CommandBufferPool.Get();
@@ -150,9 +152,12 @@ namespace SarRP.Renderer
             var trapezoidal = new Vector2[] { t0, t1, t3, t2 };
             var t = trapezoidal.Select(p => transform.MultiplyPoint(p).ToVector2()).ToArray();
             //DrawPolygonOnLightPlane(t, lightViewProjection, Color.blue);
-            Utils.DrawPolygonOnLightPlane(trapezoidal, lightViewProjection, Color.blue);
-            Utils.DrawPolygonOnLightPlane(new Vector2[] { nearCenter, farCenter }, lightViewProjection, Color.red);
-            Utils.DrawPolygonOnLightPlane(convex, lightViewProjection, Color.red);
+            if(shadowSettings.Debug)
+            {
+                Utils.DrawPolygonOnLightPlane(trapezoidal, lightViewProjection, Color.blue);
+                Utils.DrawPolygonOnLightPlane(new Vector2[] { nearCenter, farCenter }, lightViewProjection, Color.red);
+                Utils.DrawPolygonOnLightPlane(convex, lightViewProjection, Color.red);
+            }
             return transform;
         }
 

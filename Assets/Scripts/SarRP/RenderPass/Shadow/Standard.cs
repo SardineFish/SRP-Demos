@@ -56,7 +56,9 @@ namespace SarRP.Renderer
 
         public static (Matrix4x4 view, Matrix4x4 projection) GetShadowViewProjection(ShadowSettings settings, RenderingData renderingData, int lightIndex)
         {
-            var camera = GameObject.Find("Main Camera").GetComponent<Camera>();
+            var camera = renderingData.camera;
+            if (settings.Debug)
+                camera = GameObject.Find("Main Camera").GetComponent<Camera>();
             var cameraToWorld = camera.transform.localToWorldMatrix;
             var p0 = cameraToWorld.MultiplyPoint(new Vector3(0, 0, 0));
             var h = Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad / 2);

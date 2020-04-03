@@ -307,7 +307,7 @@ public static class Utility
         };
         mesh.triangles = new int[]
         {
-                    2, 1, 0,
+                    0, 2, 1,
                     0, 3, 2
         };
         mesh.uv = new Vector2[]

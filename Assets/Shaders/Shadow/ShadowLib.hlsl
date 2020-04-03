@@ -6,7 +6,6 @@
 int _UseShadow;
 float _ShadowBias;
 float4x4 _WorldToLight;
-float4x4 _LightViewProjection;
 Texture2D _ShadowMap;
 SamplerState tex_point_clamp_sampler;
 int _ShadowType; // 1.Standard  2.PSM  3.TSM

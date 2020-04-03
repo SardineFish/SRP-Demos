@@ -72,7 +72,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HGFactor: 0
-    - _LightAttenuation: 0.622
+    - _LightAttenuation: 0
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -87,5 +87,5 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _ExtinctionScale: {r: 1, g: 1, b: 1, a: 1}
+    - _ExtinctionScale: {r: 0.022241956, g: 0.022241956, b: 0.022241956, a: 1}
     - _UVScale: {r: 1, g: 1, b: 1, a: 1}

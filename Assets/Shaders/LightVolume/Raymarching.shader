@@ -3,9 +3,9 @@ Shader "SarRP/LightVolume/Raymarching" {
         [HideInInspector] _MainTex ("MainTex", 2D) = "white" {}
         _ExtinctionTex ("Extinction", 3D) = "white" {}
         _UVScale ("UV Scale", Vector) = (1, 1, 1, 1)
-        _ExtinctionScale ("Extinction Scale", Color) = (1, 1, 1, 1)
-        _LightAttenuation ("Light Attenuation", Range(0, 1)) = 1
-        _Steps ("Steps", Int) = 64
+        //[HDR] _TransmittanceExtinction ("Extinction Scale", Color) = (1, 1, 1, 1)
+        // _IncomingLoss ("Light Attenuation", Range(0, 1)) = 1
+        //_Steps ("Steps", Int) = 64
         _Seed ("Seed", Float) = 1
         _HGFactor ("HG Phase Factor", Range(-1, 1)) = 0
         //_SampleNoise ("Sample Noise", 2D) = "black" {}
@@ -33,8 +33,10 @@ Shader "SarRP/LightVolume/Raymarching" {
     float4x4 _LightProjectionMatrix;
     float3 _UVScale;
     int _Steps;
-    float3 _ExtinctionScale;
-    float _LightAttenuation;
+    float2 _RangeLimit;
+    float3 _TransmittanceExtinction;
+    float _IncomingLoss;
+    float _LightDistance;
     float4 _BoundaryPlanes[16];
     int _BoundaryPlaneCount;
     float _Seed;
@@ -66,14 +68,14 @@ Shader "SarRP/LightVolume/Raymarching" {
 
     float3 extinctionAt(float3 pos)
     {
-        return tex3D(_ExtinctionTex, pos * _UVScale).rgb * _ExtinctionScale;
+        return /*tex3D(_ExtinctionTex, pos * _UVScale).rgb * */_TransmittanceExtinction;
     }
 
     float3 lightAt(float3 pos)
     {
 	    float3 lightDir = normalize(_LightPosition.xyz - pos * _LightPosition.w);
-        float lightDistance = distance(_LightPosition.xyz, pos);
-        float3 transmittance = lerp(1, exp(-lightDistance * _ExtinctionScale), _LightAttenuation);
+        float lightDistance = lerp(_LightDistance, distance(_LightPosition.xyz, pos), _LightPosition.w);
+        float3 transmittance = lerp(1, exp(-lightDistance * _TransmittanceExtinction), _IncomingLoss);
 
 	    float3 lightColor = _LightColor.rgb;
         lightColor *= step(_LightCosHalfAngle, dot(lightDir, _LightDirection));
@@ -88,19 +90,24 @@ Shader "SarRP/LightVolume/Raymarching" {
         transmittance = 1;
         float3 totalLight = 0;
         float stepSize = (far - near) / _Steps;
+        [loop]
         for(int i = 1; i <= _Steps; i++)
         {
             float3 pos = _WorldCameraPos + ray * (near + stepSize * i);
             transmittance *= exp(-stepSize * extinctionAt(pos));
+            //transmittance = exp(-far * extinctionAt(pos));
+            /*if(transmittance.x < 0.01 && transmittance.y < 0.01 && transmittance.z < 0.01)
+                break;*/
             totalLight += transmittance * lightAt(pos) * stepSize;
+            //totalLight = transmittance;
         }
         return totalLight;
     }
 
     float getBoundary(float3 ray, out float near, out float far)
     {
-        float maxNear = -1e100;
-        float minFar = 1e100;
+        float maxNear = _ProjectionParams.y;
+        float minFar = _ProjectionParams.z;
         bool intersected = false;
         for(int i = 0; i < _BoundaryPlaneCount; i++)
         {
@@ -125,33 +132,34 @@ Shader "SarRP/LightVolume/Raymarching" {
     float4 volumeLight(v2f_default i) : SV_TARGET
     {
         i.screenPos /= i.screenPos.w;
+        
         float3 ray = normalize(i.worldPos - _WorldCameraPos);
+        float cameraDepth = tex2D(_CameraDepthTex, i.screenPos.xy).r;
         float near, far, depth;
         depth = getBoundary(ray, near, far);
-
-        float cameraDepth = tex2D(_CameraDepthTex, i.screenPos.xy).r;
-        float3 clipPos = float3(i.screenPos.xy * 2 - 1, cameraDepth);
         
-
-        
-
-        
+        // Perform z culling with camera depth buffer
         float3 nearWorldPos = _WorldCameraPos + ray * near;
         float4 p = UnityWorldToClipPos(nearWorldPos);
         p /= p.w;
-
         clip(p.z - cameraDepth);
 
+        
+        // Limit far distance with camera depth buffer
+        float cameraWorldDepth = depthToWorldDistance(i.screenPos.xy, cameraDepth);
+        far = min(far, cameraWorldDepth);
+        near = max(_RangeLimit.x, near);
+        far = min(_RangeLimit.y, far);
 
+        // Jitter sample
         float offset = sampleOffset(i.screenPos.xy) * (far - near) / _Steps;
         far += offset;
         near +=offset;
 
+        // Volumetric ray-marching
         float3 transmittance = 1;
         float3 color = 0;
         color = scattering(ray, near, far, transmittance);
-
-
 
         return float4(color, 1);
     }
@@ -181,7 +189,7 @@ Shader "SarRP/LightVolume/Raymarching" {
     float4 mixScreen(v2f_default i) : SV_TARGET
     {
         float4 col = 0;
-        float R = 8;
+        float R = 4;
         for(int j = 0; j < 4; j++)
         {
             float dist = j * R;
@@ -221,7 +229,7 @@ Shader "SarRP/LightVolume/Raymarching" {
             Name "Light Volume Scattering"
             ZTest Less
             ZWrite Off
-            Cull Back
+            Cull Front
             Blend One One
 
             HLSLPROGRAM
@@ -230,7 +238,26 @@ Shader "SarRP/LightVolume/Raymarching" {
             #pragma fragment volumeLight
             #pragma target 5.0
             
-            //#pragma enable_d3d11_debug_symbols
+            #pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // #2 Full-screen volumetric scattering
+        Pass {
+            Name "Full-screen Light Volume Scattering"
+            ZTest Less
+            ZWrite Off
+            Cull Off
+            Blend One One
+
+            HLSLPROGRAM
+
+            #pragma vertex vert_blit_default
+            #pragma fragment volumeLight
+            #pragma target 5.0
+            
+            #pragma enable_d3d11_debug_symbols
 
             ENDHLSL
         }

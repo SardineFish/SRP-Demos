@@ -10,6 +10,11 @@ namespace SarRP.Component
     [RequireComponent(typeof(Light))]
     public class LightVolumeRenderer : MonoBehaviour
     {
+        public Vector2 RayMarchingRange = new Vector2(0, 100);
+        public int RayMarchingSteps = 8;
+        [Range(0, 1)]
+        public float IncomingLoss = 0;
+        public float LightDistance = 100;
         public new Light light { get; private set; }
         public Mesh VolumeMesh { get; private set; }
         float previousAngle;
@@ -74,12 +79,12 @@ namespace SarRP.Component
                 VolumeMesh.vertices = verts;
                 VolumeMesh.triangles = new int[]
                 {
-                    0,1,2,
-                    0,2,3,
-                    0,3,4,
-                    0,4,1,
-                    1,4,3,
-                    1,3,2,
+                    0, 1, 2,
+                    0, 2, 3,
+                    0, 3, 4,
+                    0, 4, 1,
+                    1, 4, 3,
+                    1, 3, 2,
                 };
                 VolumeMesh.RecalculateNormals();
             }
@@ -109,6 +114,13 @@ namespace SarRP.Component
                 planes.Add( -(m3 - m1));
                 // planes.Add( -(m3 + m2)); // ignore near
                 planes.Add( -(m3 - m2));
+            }
+            else if(light.type == LightType.Directional)
+            {
+                viewProjection = camera.projectionMatrix * camera.worldToCameraMatrix;
+                var m2 = viewProjection.GetRow(2);
+                var m3 = viewProjection.GetRow(3);
+                planes.Add(-(m3 + m2)); // near plane only
             }
             return planes;
 

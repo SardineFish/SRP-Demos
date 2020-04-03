@@ -20,10 +20,10 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.21275021, g: 0.22765628, b: 0.2588235, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 1.11
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: f27bd08d18c1862408ef4f8b516f0ae5, type: 2}
@@ -152,6 +152,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38afb0580e011c4dbfe81b0250ff0c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RayMarchingRange: {x: 0, y: 100}
+  RayMarchingSteps: 8
+  IncomingLoss: 0
+  LightDistance: 100
 --- !u!114 &2642966
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -618,7 +622,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 518992978}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5, z: -12}
+  m_LocalPosition: {x: -1.48, y: 4.71, z: -13.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -725,7 +729,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 623009126}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.15, y: 3.66, z: -0.64}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1134,6 +1138,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38afb0580e011c4dbfe81b0250ff0c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RayMarchingRange: {x: 0, y: 100}
+  RayMarchingSteps: 8
+  IncomingLoss: 0
+  LightDistance: 100
 --- !u!114 &1483626775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1286,7 +1294,7 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.4
+  m_Intensity: 0.07
   m_Range: 16.600327
   m_SpotAngle: 39.394238
   m_InnerSpotAngle: 4.0532465
@@ -1361,6 +1369,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38afb0580e011c4dbfe81b0250ff0c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RayMarchingRange: {x: 0, y: 100}
+  RayMarchingSteps: 4
+  IncomingLoss: 0
+  LightDistance: 100
 --- !u!1 &1806970034
 GameObject:
   m_ObjectHideFlags: 0
@@ -1372,6 +1384,7 @@ GameObject:
   - component: {fileID: 1806970036}
   - component: {fileID: 1806970035}
   - component: {fileID: 1806970037}
+  - component: {fileID: 1806970038}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -1391,7 +1404,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.44
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1466,17 +1479,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b71a93edb669ddf4094e414adf917984, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Shadow: 0
-  Algorithms: 0
+  Shadow: 1
+  Algorithms: 2
   Resolution: 1024
   light: {fileID: 1806970035}
   MaxShadowDistance: 50
-  Bias: 0.0004
-  DepthBias: 1
-  NormalBias: 0
+  Bias: 0.0008
+  DepthBias: 4.2
+  NormalBias: 1.19
   NearDistance: 0.1
   FocusDistance: 20
   Debug: 0
+--- !u!114 &1806970038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806970034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b38afb0580e011c4dbfe81b0250ff0c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RayMarchingRange: {x: 0, y: 124.25}
+  RayMarchingSteps: 44
+  IncomingLoss: 1
+  LightDistance: 961.4
 --- !u!1 &1873572437
 GameObject:
   m_ObjectHideFlags: 0
@@ -1871,7 +1900,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2126541121}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.67, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 100, y: 1, z: 100}
   m_Children: []
   m_Father: {fileID: 444589531}

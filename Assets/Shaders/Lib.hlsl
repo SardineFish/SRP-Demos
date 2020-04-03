@@ -6,6 +6,7 @@
 
 float4x4 _ViewProjectionInverseMatrix;
 float3 _WorldCameraPos;
+float2 _DepthParams;
 
 
 struct v2f_light
@@ -89,14 +90,18 @@ v2f_default vert_default(appdata_full i)
 	return o;
 }
 
-v2f_no_clip_pos vert_no_clip_pos(appdata_full i, out float4 outpos : SV_POSITION)
+v2f_default vert_blit_default(appdata_full i)
 {
-	v2f_no_clip_pos o;
-	outpos = UnityObjectToClipPos(i.vertex);
+	v2f_default o;
+	o.pos = float4(i.vertex.x, i.vertex.y * _ProjectionParams.x, 1, 1);
     o.uv = i.texcoord;
 	o.normal = UnityObjectToWorldNormal(i.normal);
-	o.tangent = UnityObjectToWorldDir(i.tangent.xyz);
-    o.worldPos = mul(unity_ObjectToWorld, i.vertex);
+	o.tangent = float4(UnityObjectToWorldDir(i.tangent.xyz), i.tangent.w);
+	//o.binormal = cross(o.normal, o.tangent) * i.tangent.w;
+	float4 p = float4(i.vertex.x, i.vertex.y, 1, 1);
+    p = p * _ProjectionParams.z;
+    o.worldPos = mul(_ViewProjectionInverseMatrix, float4(p.xyzw));
+	o.screenPos = ComputeScreenPos(o.pos);
 	return o;
 }
 
@@ -111,6 +116,17 @@ v2f_ray vert_ray(appdata_full i)
     float3 worldPos = mul(_ViewProjectionInverseMatrix, float4(p.xyzw));
     o.ray = worldPos - _WorldCameraPos;
 	o.ray = normalize(o.ray) * length(o.ray) * _ProjectionParams.w;
+	return o;
+}
+
+v2f_no_clip_pos vert_no_clip_pos(appdata_full i, out float4 outpos : SV_POSITION)
+{
+	v2f_no_clip_pos o;
+	outpos = UnityObjectToClipPos(i.vertex);
+    o.uv = i.texcoord;
+	o.normal = UnityObjectToWorldNormal(i.normal);
+	o.tangent = UnityObjectToWorldDir(i.tangent.xyz);
+    o.worldPos = mul(unity_ObjectToWorld, i.vertex);
 	return o;
 }
 
@@ -134,6 +150,13 @@ float3 tangentSpaceToWorld(float3 normal, float4 tangent4, float3 v)
 	};
 	mat = transpose(mat);
 	return mul(mat, v);
+}
+
+float depthToWorldDistance(float2 screenCoord, float depthValue)
+{
+	float2 p = (screenCoord.xy * 2 - 1) * _DepthParams.xy;
+	float3 ray = float3(p.xy, 1);
+	return LinearEyeDepth(depthValue) * length(ray);
 }
 
 #endif

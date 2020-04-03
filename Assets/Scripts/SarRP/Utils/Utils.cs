@@ -28,5 +28,18 @@ namespace SarRP
             cmd.DrawMesh(FullScreenMesh, Matrix4x4.identity, mat, 0, pass);
         }
 
+        public static void SetCameraParams(this CommandBuffer cmd, Camera camera, bool renderToTexture = false)
+        {
+            var tanFov = Mathf.Tan(camera.fieldOfView / 2 * Mathf.Deg2Rad);
+            var tanFovWidth = tanFov * camera.aspect;
+            cmd.SetGlobalVector("_DepthParams", new Vector2(tanFovWidth, tanFov));
+
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+
+            cmd.SetGlobalMatrix("_ViewProjectionInverseMatrix", (camera.projectionMatrix * camera.worldToCameraMatrix).inverse);
+            var gpuVP = GL.GetGPUProjectionMatrix(camera.projectionMatrix, renderToTexture) * camera.worldToCameraMatrix;
+            cmd.SetGlobalMatrix("_GPUViewProjectionInverseMatrix", gpuVP.inverse);
+        }
+
     }
 }
