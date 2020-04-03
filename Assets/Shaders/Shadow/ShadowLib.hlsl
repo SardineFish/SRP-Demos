@@ -9,7 +9,7 @@ float4x4 _WorldToLight;
 float4x4 _LightViewProjection;
 Texture2D _ShadowMap;
 SamplerState tex_point_clamp_sampler;
-int _ShadowType;
+int _ShadowType; // 1.Standard  2.PSM  3.TSM
 float4 _ShadowParameters;
 float4x4 _ShadowPostTransform;
 
@@ -73,13 +73,13 @@ float shadowAt(v2f_legacy i)
     return 1;
 }
 
-float shadowAt(v2f_default i)
+float shadowAt(float3 worldPos)
 {
     if(_UseShadow == 0)
         return 1;
     if(_ShadowType == 0)
     {
-	    float4 p = float4(i.worldPos.xyz, 1);
+	    float4 p = float4(worldPos.xyz, 1);
         p = mul(_WorldToLight, p);
         p /= p.w;
         p.z = 1 - (0.5 * p.z + .5);
@@ -92,7 +92,7 @@ float shadowAt(v2f_default i)
     }
     else if (_ShadowType == 2)
     {
-	    float4 p = float4(i.worldPos.xyz, 1);
+	    float4 p = float4(worldPos.xyz, 1);
         float4 pClip = mul(_WorldToLight, p);
         pClip /= p.w;
         pClip.w = 1;
@@ -111,6 +111,12 @@ float shadowAt(v2f_default i)
 
     //return float4(shadowDepth, p.z, 0, 1);
     return 1;
+}
+
+
+float shadowAt(v2f_default i)
+{
+    return shadowAt(i.worldPos.xyz);
 }
 
 float4 objectToPSMClipPos(float3 pos)

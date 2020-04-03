@@ -111,7 +111,8 @@ namespace SarRP.Renderer
             cmd.GetTemporaryRT(rt, renderSize.x, renderSize.y, 0, FilterMode.Point, RenderTextureFormat.Default);
             cmd.SetRenderTarget(rt, rt);
             cmd.ClearRenderTarget(false, true, Color.black);
-            cmd.SetGlobalTexture("_CameraDepth", renderingData.DepthTarget);
+
+            cmd.SetGlobalTexture("_CameraDepthTex", renderingData.DepthTarget);
 
             foreach (var volumeData in visibleVolumes)
             {

@@ -45,29 +45,39 @@ namespace SarRP.Renderer
 
                 var mainLightIndex = GetMainLightIndex(ref renderingData);
 
+                // Render Main Light
+                if (mainLightIndex >= 0)
+                {
+                    RenderLight(context, ref renderingData, mainLightIndex, new ShaderTagId("ForwardBase"));
+                }
+
                 for (var i = 0; i < renderingData.cullResults.visibleLights.Length; i++)
                 {
-                    SetupLight(context, renderingData, i);
-
-                    FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-                    SortingSettings sortingSettings = new SortingSettings(camera);
-                    sortingSettings.criteria = SortingCriteria.CommonOpaque;
-                    var shaderTag = i == mainLightIndex
-                        ? new ShaderTagId("ForwardBase")
-                        : new ShaderTagId("ForwardAdd");
-                    DrawingSettings drawingSettings = new DrawingSettings(shaderTag, sortingSettings)
-                    {
-                        mainLightIndex = GetMainLightIndex(ref renderingData),
-                        enableDynamicBatching = true,
-                    };
-                    RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-
-                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);
+                    if (i == mainLightIndex)
+                        continue;
+                    RenderLight(context, ref renderingData, i, new ShaderTagId("ForwardAdd"));
                 }
 
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        void RenderLight(ScriptableRenderContext context, ref RenderingData renderingData, int lightIndex, ShaderTagId shaderTagId)
+        {
+            SetupLight(context, renderingData, lightIndex);
+
+            FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+            SortingSettings sortingSettings = new SortingSettings(renderingData.camera);
+            sortingSettings.criteria = SortingCriteria.CommonOpaque;
+            DrawingSettings drawingSettings = new DrawingSettings(shaderTagId, sortingSettings)
+            {
+                mainLightIndex = GetMainLightIndex(ref renderingData),
+                enableDynamicBatching = true,
+            };
+            RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+
+            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);
         }
 
         void SetupLight(ScriptableRenderContext context, RenderingData renderingData, int lightIndex)

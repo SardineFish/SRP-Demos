@@ -16,6 +16,7 @@ Shader "SarRP/LightVolume/Raymarching" {
     #include "../Lib.hlsl"
     #include "../Light.hlsl"
     #include "../Noise.hlsl"
+    #include "../Shadow/ShadowLib.hlsl"
 
     float intersectPlane(float4 plane, float3 origin, float3 dir, out bool intersect)
     {
@@ -29,9 +30,7 @@ Shader "SarRP/LightVolume/Raymarching" {
     RWTexture2DArray<half2> _RWVolumeDepthTexture;
     Texture2DArray<half2> _VolumeDepthTexture;
     sampler3D _ExtinctionTex;
-    sampler2D _ShadowMap;
     float4x4 _LightProjectionMatrix;
-    int _UseShadow;
     float3 _UVScale;
     int _Steps;
     float3 _ExtinctionScale;
@@ -44,6 +43,8 @@ Shader "SarRP/LightVolume/Raymarching" {
     
     sampler2D _SampleNoise;
     float4 _SampleNoise_TexelSize;
+
+    sampler2D _CameraDepthTex;
 
     float4 volumeDepth(v2f_default i, fixed facing : VFACE) : SV_TARGET
     {
@@ -66,22 +67,6 @@ Shader "SarRP/LightVolume/Raymarching" {
     float3 extinctionAt(float3 pos)
     {
         return tex3D(_ExtinctionTex, pos * _UVScale).rgb * _ExtinctionScale;
-    }
-
-    float shadowAt(float3 pos)
-    {
-        if(_UseShadow == 0)
-            return 1;
-        float4 p = float4(pos.xyz, 1);
-        p = mul(_LightProjectionMatrix, p);
-        p /= p.w;
-        p.z = 1 - (0.5 * p.z + .5);
-        float2 uv = p.xy * .5 + .5;
-	    float2 clip = step(0, uv.xy) * (1 - step(1, uv.xy));
-        float shadowDepth = tex2D(_ShadowMap, uv) * clip.x * clip.y;
-	    if(shadowDepth <= 0)
-	    	shadowDepth = -100;
-        return step(shadowDepth, p.z);
     }
 
     float3 lightAt(float3 pos)
@@ -142,10 +127,21 @@ Shader "SarRP/LightVolume/Raymarching" {
         i.screenPos /= i.screenPos.w;
         float3 ray = normalize(i.worldPos - _WorldCameraPos);
         float near, far, depth;
+        depth = getBoundary(ray, near, far);
+
+        float cameraDepth = tex2D(_CameraDepthTex, i.screenPos.xy).r;
+        float3 clipPos = float3(i.screenPos.xy * 2 - 1, cameraDepth);
+        
+
+        
+
         
         float3 nearWorldPos = _WorldCameraPos + ray * near;
+        float4 p = UnityWorldToClipPos(nearWorldPos);
+        p /= p.w;
 
-        depth = getBoundary(ray, near, far);
+        clip(p.z - cameraDepth);
+
 
         float offset = sampleOffset(i.screenPos.xy) * (far - near) / _Steps;
         far += offset;
@@ -160,7 +156,6 @@ Shader "SarRP/LightVolume/Raymarching" {
         return float4(color, 1);
     }
 
-    sampler2D _CameraDepthTex;
     float _GlobalFogExtinction;
 
     float4 globalFog(v2f_ray i) : SV_TARGET
@@ -224,8 +219,8 @@ Shader "SarRP/LightVolume/Raymarching" {
         // #1 Volumetric scattering
         Pass {
             Name "Light Volume Scattering"
-            ZTest Off
-            ZWrite On
+            ZTest Less
+            ZWrite Off
             Cull Back
             Blend One One
 
