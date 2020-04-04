@@ -63,6 +63,16 @@ namespace SarRP.Renderer
                     });
                 }
             }
+
+            // Alloc _BoundaryPlanes array at first frame
+            if (renderingData.FrameID == 0)
+            {
+                var cmd = CommandBufferPool.Get();
+                cmd.SetGlobalVectorArray("_BoundaryPlanes", new Vector4[6]);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                CommandBufferPool.Release(cmd);
+            }
         }
 
         public override void Render(ScriptableRenderContext context, ref RenderingData renderingData)

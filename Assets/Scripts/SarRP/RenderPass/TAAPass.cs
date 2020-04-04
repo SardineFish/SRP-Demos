@@ -35,6 +35,9 @@ namespace SarRP.Renderer
             new Vector2(.75f, .75f),
             new Vector2(.25f, .75f),
         };
+
+        public static Vector2[] Halton8 = Sampler.HaltonSequence2(2, 3).Skip(1).Take(8).ToArray();
+
         HistoricalRTSystem HistoricalRT = new HistoricalRTSystem();
         Material material;
 
