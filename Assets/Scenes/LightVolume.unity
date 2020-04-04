@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.03627451, g: 0.041666668, b: 0.04264706, a: 1}
+  m_AmbientSkyColor: {r: 0.03529412, g: 0.043137256, b: 0.043137256, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1.63
@@ -156,6 +156,9 @@ MonoBehaviour:
   RayMarchingSteps: 8
   IncomingLoss: 0
   LightDistance: 100
+  ExtinctionOverride: 0
+  VisibilityDistance: 100
+  IntensityMultiplier: 1
 --- !u!114 &2642966
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -622,13 +625,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 518992978}
-  m_LocalRotation: {x: -0, y: 0.5859282, z: -0, w: -0.81036305}
-  m_LocalPosition: {x: 26.9, y: 14.6, z: -37.4}
+  m_LocalRotation: {x: -0, y: 0.51315886, z: -0, w: -0.85829365}
+  m_LocalPosition: {x: 19.95, y: 14.6, z: -39.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 288.263, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 298.251, z: 0}
 --- !u!114 &518992982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -675,7 +678,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &985089579
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -768,7 +771,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &1045631007
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -954,7 +957,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1388397584
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1112,6 +1115,9 @@ MonoBehaviour:
   RayMarchingSteps: 8
   IncomingLoss: 0
   LightDistance: 100
+  ExtinctionOverride: 0
+  VisibilityDistance: 100
+  IntensityMultiplier: 1
 --- !u!114 &1483626775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1264,7 +1270,7 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 0.9213829, b: 0.6273585, a: 1}
-  m_Intensity: 0.07
+  m_Intensity: 0.5
   m_Range: 65.10999
   m_SpotAngle: 29.48342
   m_InnerSpotAngle: 4.0532465
@@ -1339,10 +1345,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38afb0580e011c4dbfe81b0250ff0c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RayMarchingRange: {x: 0, y: 100}
-  RayMarchingSteps: 8
-  IncomingLoss: 1
-  LightDistance: 100
+  RayMarchingRange: {x: 0, y: 300}
+  RayMarchingSteps: 4
+  IncomingLoss: 0.647
+  LightDistance: 1
+  ExtinctionOverride: 1
+  VisibilityDistance: 26.08
+  IntensityMultiplier: 3.8
 --- !u!1001 &1697689805
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1683,7 +1692,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: eb6fff4ad5dcd564d9abd145ff51d6eb,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 2.91
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: eb6fff4ad5dcd564d9abd145ff51d6eb,
         type: 3}
@@ -2799,13 +2808,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1806970034}
-  m_LocalRotation: {x: 0.43413877, y: -0.23120397, z: 0.11632713, w: 0.86286515}
+  m_LocalRotation: {x: -0.082210064, y: 0.8782336, z: -0.44186994, w: -0.16339596}
   m_LocalPosition: {x: 1.23, y: 17.37, z: -2.13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 53.417004, y: -30.000002, z: 0}
+  m_LocalEulerAnglesHint: {x: 53.417004, y: 201.079, z: 0}
 --- !u!114 &1806970037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2819,7 +2828,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Shadow: 1
-  Algorithms: 2
+  Algorithms: 0
   Resolution: 2048
   light: {fileID: 1806970035}
   MaxShadowDistance: 200
@@ -2843,8 +2852,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RayMarchingRange: {x: 0, y: 300}
   RayMarchingSteps: 8
-  IncomingLoss: 1
-  LightDistance: 340.4
+  IncomingLoss: 0
+  LightDistance: 69
+  ExtinctionOverride: 1
+  VisibilityDistance: 321.15
+  IntensityMultiplier: 8.8
 --- !u!1 &1873572437
 GameObject:
   m_ObjectHideFlags: 0
@@ -2873,7 +2885,7 @@ Transform:
   m_GameObject: {fileID: 1873572437}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -5}
-  m_LocalScale: {x: 30, y: 8, z: 30}
+  m_LocalScale: {x: 50, y: 8, z: 50}
   m_Children: []
   m_Father: {fileID: 444589531}
   m_RootOrder: 3
@@ -2960,7 +2972,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1887401586
 BoxCollider:
   m_ObjectHideFlags: 0

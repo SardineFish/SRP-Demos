@@ -116,8 +116,12 @@ namespace SarRP.Renderer
             cmd.SetGlobalTexture("_CameraDepthTex", renderingData.DepthTarget);
             cmd.SetCameraParams(renderingData.camera, true);
 
+            float globalExtinction = Mathf.Log(1 / (0.1f)) / asset.VisibilityDistance;
+
             foreach (var volumeData in visibleVolumes)
             {
+                if (!volumeData.Volume.enabled)
+                    continue;
                 var light = renderingData.cullResults.visibleLights[volumeData.LightIndex];
                 Vector4 lightPos;
                 if (light.lightType == LightType.Directional)
@@ -127,16 +131,17 @@ namespace SarRP.Renderer
                 cmd.SetGlobalVector("_LightPosition", lightPos);
                 cmd.SetGlobalVector("_LightDirection", -light.light.transform.forward);
                 cmd.SetGlobalFloat("_LightAngle", Mathf.Cos(Mathf.Deg2Rad * light.spotAngle / 2));
-                cmd.SetGlobalVector("_LightColor", light.finalColor);
+                cmd.SetGlobalVector("_LightColor", light.finalColor * volumeData.Volume.IntensityMultiplier);
                 cmd.SetGlobalVector("_WorldCameraPos", renderingData.camera.transform.position);
                 cmd.SetGlobalVector("_FrameSize", new Vector4(renderSize.x, renderSize.y, 1f / renderSize.x, 1f / renderSize.y));
                 cmd.SetGlobalInt("_Steps", volumeData.Volume.RayMarchingSteps);
                 cmd.SetGlobalVector("_RangeLimit", volumeData.Volume.RayMarchingRange);
                 cmd.SetGlobalFloat("_IncomingLoss", volumeData.Volume.IncomingLoss);
                 cmd.SetGlobalFloat("_LightDistance", volumeData.Volume.LightDistance);
-
-                float extinction_ = Mathf.Log(1 / (0.1f)) / asset.VisibilityDistance;
-                cmd.SetGlobalVector("_TransmittanceExtinction", new Vector3(extinction_, extinction_, extinction_));
+                var extinction = globalExtinction;
+                if (volumeData.Volume.ExtinctionOverride)
+                    extinction = Mathf.Log(1 / (0.1f)) / volumeData.Volume.VisibilityDistance;
+                cmd.SetGlobalVector("_TransmittanceExtinction", new Vector3(extinction, extinction, extinction));
                 if (asset.JitterPatterns.Length > 0)
                     cmd.SetGlobalTexture("_SampleNoise", asset.JitterPatterns[renderingData.FrameID % asset.JitterPatterns.Length]);
 
@@ -179,8 +184,7 @@ namespace SarRP.Renderer
             }
 
             cmd.SetGlobalTexture("_CameraDepthTex", renderingData.DepthTarget);
-            float extinction = Mathf.Log(1 / (0.1f)) / asset.VisibilityDistance;
-            cmd.SetGlobalFloat("_GlobalFogExtinction", extinction);
+            cmd.SetGlobalFloat("_GlobalFogExtinction", globalExtinction);
             cmd.SetGlobalColor("_AmbientLight", asset.FogLight);
             //cmd.Blit(BuiltinRenderTextureType.None, renderingData.ColorTarget, volumeMat, PassGlobalFog);
             cmd.BlitFullScreen(BuiltinRenderTextureType.None, renderingData.ColorTarget, volumeMat, PassGlobalFog);

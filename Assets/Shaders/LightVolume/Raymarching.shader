@@ -2,6 +2,7 @@ Shader "SarRP/LightVolume/Raymarching" {
     Properties {
         [HideInInspector] _MainTex ("MainTex", 2D) = "white" {}
         _ExtinctionTex ("Extinction", 3D) = "white" {}
+        _AbsorptionRatio ("Absorption Ratio", Range(0, 1)) = 0.5
         _UVScale ("UV Scale", Vector) = (1, 1, 1, 1)
         //[HDR] _TransmittanceExtinction ("Extinction Scale", Color) = (1, 1, 1, 1)
         // _IncomingLoss ("Light Attenuation", Range(0, 1)) = 1
@@ -42,6 +43,7 @@ Shader "SarRP/LightVolume/Raymarching" {
     float _Seed;
     float4 _FrameSize;
     float _HGFactor;
+    float _AbsorptionRatio;
     
     sampler2D _SampleNoise;
     float4 _SampleNoise_TexelSize;
@@ -84,10 +86,12 @@ Shader "SarRP/LightVolume/Raymarching" {
 	    lightDir = normalize(_LightPosition.xyz - pos * _LightPosition.w);
         float lightDistance = lerp(_LightDistance, distance(_LightPosition.xyz, pos), _LightPosition.w);
         float3 transmittance = lerp(1, exp(-lightDistance * _TransmittanceExtinction), _IncomingLoss);
+        float3 inScatter = _TransmittanceExtinction * (1 - _AbsorptionRatio);
 
 	    float3 lightColor = _LightColor.rgb;
         lightColor *= step(_LightCosHalfAngle, dot(lightDir, _LightDirection));
         lightColor *= shadowAt(pos);
+        lightColor *= inScatter;
         lightColor *= transmittance;
 
         return lightColor;

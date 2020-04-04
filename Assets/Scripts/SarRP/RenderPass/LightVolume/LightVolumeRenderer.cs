@@ -15,6 +15,9 @@ namespace SarRP.Component
         [Range(0, 1)]
         public float IncomingLoss = 0;
         public float LightDistance = 100;
+        public bool ExtinctionOverride = false;
+        public float VisibilityDistance = 100;
+        public float IntensityMultiplier = 1;
         public new Light light { get; private set; }
         public Mesh VolumeMesh { get; private set; }
         float previousAngle;
