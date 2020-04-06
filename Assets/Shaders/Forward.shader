@@ -22,6 +22,7 @@ Shader "SarRP/ForwardDefault" {
 
     float4 light(v2f_default i, float3 ambient)
     {
+        i.uv = TRANSFORM_TEX(i.uv, _MainTex);
         float4 albedo = tex2D(_MainTex, i.uv) * _Color;
         float4 packNormal = tex2D(_Normal, i.uv); 
         float3 normal = UnpackNormal(packNormal);

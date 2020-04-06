@@ -34,6 +34,8 @@ namespace SarRP
             var tanFovWidth = tanFov * camera.aspect;
             cmd.SetGlobalVector("_DepthParams", new Vector2(tanFovWidth, tanFov));
 
+            cmd.SetGlobalVector("_WorldCameraPos", camera.transform.position);
+
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             cmd.SetGlobalMatrix("_ViewProjectionInverseMatrix", (camera.projectionMatrix * camera.worldToCameraMatrix).inverse);

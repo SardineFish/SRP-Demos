@@ -82,7 +82,7 @@ v2f_default vert_default(appdata_full i)
 	v2f_default o;
 	o.pos = UnityObjectToClipPos(i.vertex);
     o.uv = i.texcoord;
-	o.normal = UnityObjectToWorldNormal(i.normal);
+	o.normal = UnityObjectToWorldNormal(i.normal); 
 	o.tangent = float4(UnityObjectToWorldDir(i.tangent.xyz), i.tangent.w);
 	//o.binormal = cross(o.normal, o.tangent) * i.tangent.w;
     o.worldPos = mul(unity_ObjectToWorld, i.vertex);
@@ -108,9 +108,9 @@ v2f_default vert_blit_default(appdata_full i)
 v2f_ray vert_ray(appdata_full i)
 {
 	v2f_ray o;
-    o.pos = float4(i.vertex.x, i.vertex.y * _ProjectionParams.x, 1, 1);
+    o.pos = float4(i.vertex.x, i.vertex.y, 1, 1);
     o.uv = i.texcoord;
-	o.pos.y *= _ProjectionParams.x;
+	o.pos.y *= _ProjectionParams.x; 
     float4 p = float4(i.vertex.x, i.vertex.y, 1, 1);
     p = p * _ProjectionParams.z;
     float3 worldPos = mul(_ViewProjectionInverseMatrix, float4(p.xyzw));

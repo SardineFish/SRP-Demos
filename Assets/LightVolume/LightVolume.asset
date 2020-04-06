@@ -15,7 +15,7 @@ MonoBehaviour:
   VolumeResolutionScale: 1
   GlobalFog: 1
   VisibilityDistance: 300
-  FogLight: {r: 0, g: 0, b: 0, a: 0}
+  FogLight: {r: 0.23529412, g: 0.3137255, b: 0.33333334, a: 0}
   Material: {fileID: 2100000, guid: cde01e24d11afd64ab1c2d3660fd0770, type: 2}
   JitterPatterns:
   - {fileID: 2800000, guid: e1a5369b37868284ab18221f10c38eae, type: 3}

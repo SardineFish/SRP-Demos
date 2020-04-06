@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 459df926b7883ff4aa2dfb018073c017, type: 3}
-  m_Name: LightVolumeRP
+  m_Name: SarRenderPipelineTAA
   m_EditorClassIdentifier: 
   m_MaxShadowDistance: 0
-  m_HDR: 1
+  m_HDR: 0
   m_ResolutionScale: 1
   m_RenderPasses:
-  - {fileID: 11400000, guid: 314e5b301b6ec6d4f889f4535c6e3156, type: 2}
-  - {fileID: 11400000, guid: 6c80a85f3b372624ebcbb54f91d53fc7, type: 2}
-  - {fileID: 11400000, guid: 853c093592ecb4e4d8de1329dca3e050, type: 2}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 8a4a211ebec412046b6d02a965be3775, type: 2}
+  - {fileID: 11400000, guid: 432680f5cba90a94ba3353796fa83330, type: 2}
+  - {fileID: 11400000, guid: 190ddb4b11ca4ff4e9da858d93e4115f, type: 2}
+  - {fileID: 11400000, guid: 63396bac1bdf4bf49bea4929cedf0336, type: 2}

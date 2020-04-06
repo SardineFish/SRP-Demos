@@ -21,6 +21,13 @@ namespace SarRP
         bool m_HDR = false;
 
         [SerializeField]
+        [Header("Resolution Scale")]
+        [Range(0.25f, 2f)]
+        [Delayed]
+        float m_ResolutionScale = 1;
+
+
+        [SerializeField]
         [HideInInspector]
         List<RenderPassAsset> m_RenderPasses = new List<RenderPassAsset>();
         public List<RenderPassAsset> RenderPasses => m_RenderPasses;
@@ -34,6 +41,12 @@ namespace SarRP
         {
             get => m_HDR;
             set => m_HDR = value;
+        }
+
+        public float ResolutionScale
+        {
+            get => m_ResolutionScale;
+            set => m_ResolutionScale = value;
         }
         protected override RenderPipeline CreatePipeline()
         {

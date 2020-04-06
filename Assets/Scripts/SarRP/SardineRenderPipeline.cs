@@ -76,6 +76,7 @@ namespace SarRP
                 JitteredProjectionMatrix = jitteredProjectionMat,
                 ProjectionJitter = new Vector2(.5f,.5f),
                 NextProjectionJitter = new Vector2(.5f, .5f),
+                ResolutionScale = settings.ResolutionScale,
             };
 
             this.Setup(context, ref renderingData);
@@ -198,7 +199,11 @@ namespace SarRP
             foreach (var renderPassAsset in settings.RenderPasses)
             {
                 if (renderPassAsset)
-                    RenderPassQueue.Add(renderPassAsset.GetRenderPass(camera));
+                {
+                    var pass = renderPassAsset.GetRenderPass(camera);
+                    pass.InternalSetup();
+                    RenderPassQueue.Add(pass);
+                }
             }
         }
     }

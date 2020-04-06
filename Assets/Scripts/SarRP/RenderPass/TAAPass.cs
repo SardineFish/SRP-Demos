@@ -8,9 +8,15 @@ using UnityEngine.Rendering;
 
 namespace SarRP.Renderer
 {
+    public enum SamplingPatterns
+    {
+        Halton2_3,
+        Uniform,
+    }
     [CreateAssetMenu(fileName ="TAA", menuName ="SarRP/RenderPass/TAA")]
     public class TAAPass : RenderPassAsset
     {
+        public SamplingPatterns SamplingPatterns;
         public int Samples = 4;
         [Range(0, 1)]
         public float BlendAlpha = 0.1f;
@@ -37,6 +43,9 @@ namespace SarRP.Renderer
         };
 
         public static Vector2[] Halton8 = Sampler.HaltonSequence2(2, 3).Skip(1).Take(8).ToArray();
+        public static Vector2[] Halton16 = Sampler.HaltonSequence2(2, 3).Skip(1).Take(16).ToArray();
+
+        List<Vector2> patterns = new List<Vector2>(16);
 
         HistoricalRTSystem HistoricalRT = new HistoricalRTSystem();
         Material material;
@@ -49,10 +58,31 @@ namespace SarRP.Renderer
         {
             if (!material)
                 material = new Material(Shader.Find("SarRP/TAA"));
-            if (asset.Samples == 4)
+
+            if (patterns.Capacity < asset.Samples)
+                patterns.Capacity = asset.Samples;
+
+            if (asset.SamplingPatterns == SamplingPatterns.Uniform)
             {
-                renderingData.NextProjectionJitter = Pattern4[renderingData.FrameID % 4];
+                asset.Samples = Mathf.ClosestPowerOfTwo(asset.Samples);
+                var size = Mathf.Sqrt(asset.Samples);
+                patterns.Clear();
+                for (int y = 0; y < Mathf.Sqrt(asset.Samples); y++)
+                {
+                    for (int x = 0; x < Mathf.Sqrt(asset.Samples); x++)
+                    {
+                        patterns.Add(new Vector2(x / size + .5f * size, y / size + .5f * size));
+                    }
+                }
             }
+            else if (asset.SamplingPatterns == SamplingPatterns.Halton2_3)
+            {
+                patterns = Sampler.HaltonSequence2(2, 3).Skip(1).Take(asset.Samples).ToList();
+            }
+
+
+            renderingData.NextProjectionJitter = patterns[renderingData.FrameID % asset.Samples];
+
             HistoricalRT.Swap();
         }
         int previousColor;
@@ -60,31 +90,14 @@ namespace SarRP.Renderer
         {
             var cmd = CommandBufferPool.Get("TAA Resolve");
             var (previousColor, nextColor) = GetHistoricalColorBuffer(renderingData);
-            //var rt = RenderTarget.GetTemporary(cmd, renderingData.camera.pixelWidth, renderingData.camera.pixelHeight, 0, FilterMode.Point, renderingData.ColorBufferFormat);
-            //var rt = IdentifierPool.Get();
-            /*RenderTextureDescriptor renderTextureDescriptor = new RenderTextureDescriptor()
-            {
-                width = renderingData.camera.pixelWidth,
-                height = renderingData.camera.pixelHeight,
-                depthBufferBits = 0,
-                colorFormat = renderingData.ColorBufferFormat,
-                memoryless = RenderTextureMemoryless.None,
-                msaaSamples = 1,
-                dimension = TextureDimension.Tex2D,
-            };*/
-            //cmd.GetTemporaryRT(rt, renderingData.camera.pixelWidth, renderingData.camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.Default);
-            /*if(renderingData.FrameID == 0 || previousFrame.ColorBuffer == null)
-            {
-                cmd.Blit(renderingData.ColorTarget, rt);
-            }
-            else*/
-            {
-                cmd.SetGlobalTexture("_PreviousFrameBuffer", previousColor);
-                cmd.SetGlobalTexture("_CurrentFrameBuffer", renderingData.ColorTarget);
-                cmd.SetGlobalFloat("_Alpha", asset.BlendAlpha);
-                cmd.Blit(renderingData.ColorTarget, nextColor, material, 0);
-                cmd.Blit(nextColor, renderingData.ColorTarget);
-            }
+
+            cmd.SetGlobalTexture("_PreviousFrameBuffer", previousColor);
+            cmd.SetGlobalTexture("_CurrentFrameBuffer", renderingData.ColorTarget);
+            cmd.SetGlobalFloat("_Alpha", asset.BlendAlpha);
+            cmd.SetGlobalTexture("_VelocityBuffer", renderingData.VelocityBuffer);
+            cmd.Blit(renderingData.ColorTarget, nextColor, material, 0);
+            cmd.Blit(nextColor, renderingData.ColorTarget);
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);

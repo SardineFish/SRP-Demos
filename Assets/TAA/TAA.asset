@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9f098f9d83fba742b58ec614fe45a73, type: 3}
   m_Name: TAA
   m_EditorClassIdentifier: 
+  SamplingPatterns: 0
   Samples: 8
-  BlendAlpha: 0.05
+  BlendAlpha: 0.03

@@ -9,8 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9f098f9d83fba742b58ec614fe45a73, type: 3}
-  m_Name: TAA
+  m_Script: {fileID: 11500000, guid: 6fdb3677c03502d4c89655c421f536ea, type: 3}
+  m_Name: Shadow
   m_EditorClassIdentifier: 
-  Samples: 8
-  BlendAlpha: 0.05

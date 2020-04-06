@@ -20,9 +20,22 @@ namespace SarRP.Renderer
 
     public abstract class RenderPass
     {
-        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        [NonSerialized]
+        private bool _reload = true;
+        protected virtual void Init()
         {
 
+        }
+        internal virtual void InternalSetup()
+        {
+            if(_reload)
+            {
+                Init();
+                _reload = false;
+            }
+        }
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
         }
 
         public virtual void Render(ScriptableRenderContext context, ref RenderingData renderingData)

@@ -18,6 +18,7 @@ namespace SarRP
         public RenderTextureFormat ColorBufferFormat;
         public Dictionary<Light, Renderer.ShadowMapData> shadowMapData;
         public RenderTargetIdentifier DefaultShadowMap;
+        public RenderTargetIdentifier VelocityBuffer;
         public int FrameID;
         public bool DiscardFrameBuffer;
         public Vector2 ProjectionJitter;
@@ -25,5 +26,8 @@ namespace SarRP
         public Matrix4x4 JitteredProjectionMatrix;
         public Matrix4x4 ProjectionMatrix;
         public Matrix4x4 ViewMatrix;
+        public float ResolutionScale;
+        public int ResolutionX => Mathf.FloorToInt(camera.pixelWidth * ResolutionScale);
+        public int ResolutionY => Mathf.FloorToInt(camera.pixelHeight * ResolutionScale);
     }
 }
