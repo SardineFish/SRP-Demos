@@ -28,7 +28,7 @@ namespace SarRP.Renderer
         }
         internal virtual void InternalSetup()
         {
-            if(_reload)
+            if (_reload)
             {
                 Init();
                 _reload = false;

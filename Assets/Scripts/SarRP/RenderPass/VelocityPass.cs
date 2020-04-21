@@ -21,18 +21,19 @@ namespace SarRP.Renderer
     {
         enum ShaderPass : int
         {
-            VelocityBuffer = 0,
+            OpaqueVelocity = 0,
+            SkyboxVelocity = 1,
         }
-        Material material;
+        const string ShaderName = "SarRP/VelocityBuffer";
         int velocityBuffer;
         Matrix4x4 previousGPUVPMatrix;
+        Vector2 previousJitterOffset;
         public VelocityPassRenderer(VelocityPass asset) : base(asset)
         {
         }
 
         protected override void Init()
         {
-            material = new Material(Shader.Find("SarRP/VelocityBuffer"));
             velocityBuffer = Shader.PropertyToID("_VelocityBuffer");
         }
 
@@ -40,7 +41,7 @@ namespace SarRP.Renderer
         {
             var cmd = CommandBufferPool.Get();
 
-            cmd.GetTemporaryRT(velocityBuffer, renderingData.ResolutionX, renderingData.ResolutionY, 0, FilterMode.Point, RenderTextureFormat.RGFloat);
+            cmd.GetTemporaryRT(velocityBuffer, renderingData.ResolutionX, renderingData.ResolutionY, 32, FilterMode.Point, RenderTextureFormat.RGFloat);
             if (renderingData.FrameID == 0)
                 previousGPUVPMatrix = SaveGPUViewProjection(renderingData);
             renderingData.VelocityBuffer = velocityBuffer;
@@ -64,13 +65,42 @@ namespace SarRP.Renderer
             var camera = renderingData.camera;
             var cmd = CommandBufferPool.Get("Velocity Pass");
 
-            cmd.SetGlobalMatrix("_PreviousGPUViewProjection", previousGPUVPMatrix);
-            cmd.SetGlobalTexture("_CameraDepthTex", renderingData.DepthTarget);
+            using (new ProfilingSample(cmd,"Velocity Pass"))
+            {
+                cmd.SetGlobalMatrix("_PreviousGPUViewProjection", previousGPUVPMatrix);
+                cmd.SetGlobalTexture("_CameraDepthTex", renderingData.DepthTarget);
+                cmd.SetGlobalVector("_PreviousJitterOffset", previousJitterOffset);
+                var jitterOffset = renderingData.ProjectionJitter - new Vector2(.5f, .5f);
+                cmd.SetGlobalVector("_CurrentJutterOffset", jitterOffset);
 
-            cmd.SetCameraParams(renderingData.camera, false);
-            cmd.BlitFullScreen(BuiltinRenderTextureType.None, velocityBuffer, material, (int)ShaderPass.VelocityBuffer);
+                cmd.SetCameraParams(renderingData.camera, false);
+                cmd.SetViewProjectionMatrices(renderingData.ViewMatrix, renderingData.JitteredProjectionMatrix);
+                cmd.SetRenderTarget(velocityBuffer, velocityBuffer);
+                var jitterVelocity = Vector2.Scale(jitterOffset - previousJitterOffset, new Vector2(1f / renderingData.ResolutionX, 1f / renderingData.ResolutionY));
+
+                cmd.ClearRenderTarget(true, true, Color.black);
+                //cmd.BlitFullScreen(BuiltinRenderTextureType.None, velocityBuffer, ShaderPool.Get("SarRP/VelocityBuffer"), (int)ShaderPass.VelocityBuffer);
+                cmd.BlitFullScreen(BuiltinRenderTextureType.None, velocityBuffer, ShaderPool.Get(ShaderName), (int)ShaderPass.SkyboxVelocity);
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+                SortingSettings sortingSettings = new SortingSettings(renderingData.camera);
+                sortingSettings.criteria = SortingCriteria.CommonOpaque;
+                DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId("ForwardBase"), sortingSettings)
+                {
+                    overrideMaterial = ShaderPool.Get(ShaderName),
+                    overrideMaterialPassIndex = (int)ShaderPass.OpaqueVelocity,
+                    enableDynamicBatching = true,
+                };
+                RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);
+            }
 
             previousGPUVPMatrix = SaveGPUViewProjection(renderingData);
+            previousJitterOffset = renderingData.ProjectionJitter - new Vector2(.5f, .5f);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();

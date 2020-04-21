@@ -15,7 +15,7 @@ Shader "SarRP/TAA" {
     {
         float4 current = tex2D(_CurrentFrameBuffer, i.uv);
         float2 velocity = tex2D(_VelocityBuffer, i.uv);
-        float2 previousUV = i.uv + velocity;
+        float2 previousUV = i.uv - velocity;
         if(min(previousUV.x, previousUV.y) < 0 || max(previousUV.x, previousUV.y) > 1)
         {
             return current;

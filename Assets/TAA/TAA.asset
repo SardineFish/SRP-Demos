@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: TAA
   m_EditorClassIdentifier: 
   SamplingPatterns: 0
-  Samples: 8
-  BlendAlpha: 0.03
+  Samples: 16
+  BlendAlpha: 0.1

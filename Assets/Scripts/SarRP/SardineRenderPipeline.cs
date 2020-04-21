@@ -59,7 +59,7 @@ namespace SarRP
             var projectionMat = camera.projectionMatrix;
             var jitteredProjectionMat = projectionMat;
             jitteredProjectionMat.m02 += (projectionJitter.Current.x * 2 - 1) / camera.pixelWidth;
-            jitteredProjectionMat.m12 += (projectionJitter.Current.x * 2 - 1) / camera.pixelHeight;
+            jitteredProjectionMat.m12 += (projectionJitter.Current.y * 2 - 1) / camera.pixelHeight;
 
             var renderingData = new RenderingData()
             {
@@ -74,7 +74,7 @@ namespace SarRP
                 ViewMatrix = camera.worldToCameraMatrix,
                 ProjectionMatrix = projectionMat,
                 JitteredProjectionMatrix = jitteredProjectionMat,
-                ProjectionJitter = new Vector2(.5f,.5f),
+                ProjectionJitter = projectionJitter.Current,
                 NextProjectionJitter = new Vector2(.5f, .5f),
                 ResolutionScale = settings.ResolutionScale,
             };
