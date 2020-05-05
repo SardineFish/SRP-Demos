@@ -7,6 +7,7 @@
     "com.unity.probuilder": "4.2.3",
     "com.unity.render-pipelines.core": "file:../ScriptableRenderPipeline/com.unity.render-pipelines.core",
     "com.unity.render-pipelines.lightweight": "file:../ScriptableRenderPipeline/com.unity.render-pipelines.lightweight",
+    "com.unity.render-pipelines.high-definition": "file:../ScriptableRenderPipeline/com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.universal": "file:../ScriptableRenderPipeline/com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "7.1.5",
     "com.unity.test-framework": "1.1.3",

@@ -125,6 +125,7 @@ namespace SarRP
                 pass.Render(context, ref renderingData);
             }
 
+            cmd.SetViewProjectionMatrices(renderingData.ViewMatrix, renderingData.ProjectionMatrix);
             cmd.Blit(renderingData.ColorTarget, BuiltinRenderTextureType.CameraTarget);
             //cmd.CopyTexture(renderingData.DepthTarget, BuiltinRenderTextureType.CameraTarget);
             context.ExecuteCommandBuffer(cmd);

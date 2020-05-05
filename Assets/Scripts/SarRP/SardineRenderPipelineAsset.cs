@@ -26,6 +26,9 @@ namespace SarRP
         [Delayed]
         float m_ResolutionScale = 1;
 
+        Lazy<Shader> m_defaultShader = new Lazy<Shader>(() => Shader.Find("SarRP/ForwardDefault"));
+        Material m_defaultMaterial;
+
 
         [SerializeField]
         [HideInInspector]
@@ -48,6 +51,20 @@ namespace SarRP
             get => m_ResolutionScale;
             set => m_ResolutionScale = value;
         }
+
+        public override Material defaultMaterial
+        {
+            get
+            {
+                if(!m_defaultMaterial)
+                {
+                    m_defaultMaterial = new Material(defaultShader);
+                    m_defaultMaterial.SetShaderPassEnabled("MotionVectors", false);
+                }
+                return m_defaultMaterial;
+            }
+        }
+        public override Shader defaultShader => m_defaultShader.Value;
         protected override RenderPipeline CreatePipeline()
         {
             return new SardineRenderPipeline(this);

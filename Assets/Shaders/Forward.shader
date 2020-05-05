@@ -96,5 +96,29 @@ Shader "SarRP/ForwardDefault" {
 
             ENDHLSL
         }
+
+        Pass {
+            Name "MotionVectors"
+
+            Tags{ "LightMode" = "MotionVectors" }
+
+            Cull Back
+            ZWrite On
+            ZTest Less
+            
+            HLSLPROGRAM
+
+            #include "./VelocityBuffer.hlsl"
+
+            #pragma vertex vert_velocity
+            #pragma fragment frag_velocity
+
+            #pragma enable_d3d11_debug_symbols
+
+            #define SHADERPASS SHADERPASS_MOTION_VECTORS
+
+            ENDHLSL
+        }
     }
+    CustomEditor "SarRP.Editor.Material.ForwardLit"
 }

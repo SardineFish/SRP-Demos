@@ -21,9 +21,10 @@ namespace SarRP.Renderer
     {
         enum ShaderPass : int
         {
-            OpaqueVelocity = 0,
-            SkyboxVelocity = 1,
+            // OpaqueVelocity = 0,
+            SkyboxVelocity = 0,
         }
+        static readonly ShaderTagId VelocityPassName = new ShaderTagId("MotionVectors");
         const string ShaderName = "SarRP/VelocityBuffer";
         int velocityBuffer;
         Matrix4x4 previousGPUVPMatrix;
@@ -40,6 +41,8 @@ namespace SarRP.Renderer
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
+
+            renderingData.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
             cmd.GetTemporaryRT(velocityBuffer, renderingData.ResolutionX, renderingData.ResolutionY, 32, FilterMode.Point, RenderTextureFormat.RGFloat);
             if (renderingData.FrameID == 0)
@@ -87,13 +90,18 @@ namespace SarRP.Renderer
 
                 FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
                 SortingSettings sortingSettings = new SortingSettings(renderingData.camera);
+                var mat = ShaderPool.Get("SarRP/ForwardDefault");
+                mat.SetShaderPassEnabled("MotionVectors", false);
                 sortingSettings.criteria = SortingCriteria.CommonOpaque;
-                DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId("ForwardBase"), sortingSettings)
+                DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId(""), sortingSettings)
                 {
-                    overrideMaterial = ShaderPool.Get(ShaderName),
-                    overrideMaterialPassIndex = (int)ShaderPass.OpaqueVelocity,
+                    // overrideMaterial = ShaderPool.Get(ShaderName),
+                    // overrideMaterialPassIndex = (int)ShaderPass.OpaqueVelocity,
                     enableDynamicBatching = true,
+                    enableInstancing = true,
+                    perObjectData = PerObjectData.MotionVectors,
                 };
+                drawingSettings.SetShaderPassName(0, new ShaderTagId("MotionVectors"));
                 RenderStateBlock stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref stateBlock);
