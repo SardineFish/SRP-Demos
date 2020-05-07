@@ -159,4 +159,9 @@ float depthToWorldDistance(float2 screenCoord, float depthValue)
 	return LinearEyeDepth(depthValue) * length(ray);
 }
 
+float3 depthToWorldPos(float2 screenCoord, float depthValue, float3 ray)
+{
+	return normalize(ray) * depthToWorldDistance(screenCoord, depthValue) + _WorldCameraPos;
+}
+
 #endif

@@ -22,7 +22,7 @@ namespace SarRP.Renderer
         enum ShaderPass : int
         {
             // OpaqueVelocity = 0,
-            SkyboxVelocity = 0,
+            StaticVelocity = 0,
         }
         static readonly ShaderTagId VelocityPassName = new ShaderTagId("MotionVectors");
         const string ShaderName = "SarRP/VelocityBuffer";
@@ -83,17 +83,21 @@ namespace SarRP.Renderer
 
                 cmd.ClearRenderTarget(true, true, Color.black);
                 //cmd.BlitFullScreen(BuiltinRenderTextureType.None, velocityBuffer, ShaderPool.Get("SarRP/VelocityBuffer"), (int)ShaderPass.VelocityBuffer);
-                cmd.BlitFullScreen(BuiltinRenderTextureType.None, velocityBuffer, ShaderPool.Get(ShaderName), (int)ShaderPass.SkyboxVelocity);
+                cmd.BlitFullScreen(BuiltinRenderTextureType.None, velocityBuffer, ShaderPool.Get(ShaderName), (int)ShaderPass.StaticVelocity);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+
                 FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-                SortingSettings sortingSettings = new SortingSettings(renderingData.camera);
+                SortingSettings sortingSettings = new SortingSettings(renderingData.camera)
+                {
+                    criteria = SortingCriteria.CommonOpaque
+                };
                 var mat = ShaderPool.Get("SarRP/ForwardDefault");
                 mat.SetShaderPassEnabled("MotionVectors", false);
                 sortingSettings.criteria = SortingCriteria.CommonOpaque;
-                DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId(""), sortingSettings)
+                DrawingSettings drawingSettings = new DrawingSettings(new ShaderTagId("MotionVectors"), sortingSettings)
                 {
                     // overrideMaterial = ShaderPool.Get(ShaderName),
                     // overrideMaterialPassIndex = (int)ShaderPass.OpaqueVelocity,

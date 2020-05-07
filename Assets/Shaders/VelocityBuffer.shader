@@ -10,12 +10,19 @@ Shader "SarRP/VelocityBuffer" {
     float2 _PreviousJitterOffset;
     float2 _CurrentJutterOffset;
     
-    
     float2 backgroundVelocityBuffer(v2f_ray i) : SV_TARGET
     {
         float3 ray = normalize(i.ray);
-        float4 previousP = mul(_PreviousGPUViewProjection, float4(ray.xyz, 0));
-        float4 currentP = mul(UNITY_MATRIX_VP, float4(ray.xyz, 0));
+
+        float depth = tex2D(_CameraDepthTex, i.uv.xy);
+        float4 worldPos;
+        if(depth <= 0)
+            worldPos = float4(ray.xyz, 0);
+        else
+            worldPos = float4(depthToWorldPos(i.uv, depth, ray), 1);
+
+        float4 previousP = mul(_PreviousGPUViewProjection, worldPos);
+        float4 currentP = mul(UNITY_MATRIX_VP, worldPos);
         previousP/= previousP.w;
         currentP /= currentP.w;
         currentP.y *= _ProjectionParams.x;
