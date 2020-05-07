@@ -9,9 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9f098f9d83fba742b58ec614fe45a73, type: 3}
-  m_Name: TAA
+  m_Script: {fileID: 11500000, guid: 233f30c3212c6e84093b0f6ee115ee45, type: 3}
+  m_Name: VelocityPass
   m_EditorClassIdentifier: 
-  SamplingPatterns: 0
-  Samples: 16
-  BlendAlpha: 0.03

@@ -1346,7 +1346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RayMarchingRange: {x: 0, y: 300}
-  RayMarchingSteps: 4
+  RayMarchingSteps: 3
   IncomingLoss: 0.647
   LightDistance: 1
   ExtinctionOverride: 1
@@ -2752,7 +2752,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 0.7764706, g: 0.97051084, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.02
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208

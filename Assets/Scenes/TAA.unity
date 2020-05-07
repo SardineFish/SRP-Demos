@@ -1375,7 +1375,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1690875601
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2968,15 +2968,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b71a93edb669ddf4094e414adf917984, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Shadow: 0
-  Algorithms: 2
+  Shadow: 1
+  Algorithms: 0
   Resolution: 2048
   light: {fileID: 1806970035}
-  MaxShadowDistance: 200
+  MaxShadowDistance: 100
   Bias: 0.0008
   DepthBias: 4.2
   NormalBias: 1.19
-  NearDistance: 0.1
+  NearDistance: 5.82
   FocusDistance: 20
   Debug: 0
 --- !u!114 &1806970038
